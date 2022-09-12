@@ -1,3 +1,7 @@
+# Text editors and IDEs
+.vscode/
+.idea/
+
 # Prerequisites
 *.d
 
@@ -50,3 +54,9 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Log files
+.log
+
+# Binary file
+bin/
