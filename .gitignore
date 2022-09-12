@@ -56,7 +56,11 @@ Mkfile.old
 dkms.conf
 
 # Log files
-.log
+*.log
 
 # Binary file
 bin/
+*.bin
+
+# Image file
+*.img

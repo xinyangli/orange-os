@@ -1,0 +1,10 @@
+# EXAMPLES
+
+Examples from the book [Orange'S:一个操作系统的实现](https://book.douban.com/subject/3735649/) is put under this directory. It's a great book to get started from if you want to build your own system from scratch.
+
+## Environment
+
+Since the book is a little bit old, some of the software it used is outdated. My development environment is a little bit different from the book.
+
+Bochs: Bochs x86 Emulator 2.7 (August 1st, 2021)
+
