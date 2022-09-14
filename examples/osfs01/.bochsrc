@@ -1,4 +1,4 @@
-################################
+###############################
 # Configuration file for Bochs #
 ################################
 
@@ -20,3 +20,6 @@ log: bochsout.log
 
 # disable the mouse
 mouse: enabled=0
+
+# enable keyboard mapping
+# keyboard: keymap=/usr/local/share/bochs/keymaps/sdl2-pc-us.map
