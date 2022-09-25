@@ -605,6 +605,8 @@ Ubuntu 14.04；bochs 2.7 .
   ; TSS 
   ```
 
+  ![TSS结构图](osfs03-1.asset/tss.jpg)
+
 - ring3下的提权调用流程：跨特权级进行调用不能共享堆栈，防止不同特权级共用数据产生安全风险。
 
       ①根据目标代码段的DPL（新的CPL）从TSS中提取SS与ESP。
