@@ -622,9 +622,13 @@ Ubuntu 14.04；bochs 2.7 .
 
   ![TR寄存器](osfs03-1.asset/tr.png)
 
-  ![TR寄存器](osfs03-1.asset/1.jpg)
+  ![流程图](osfs03-1.asset/1.jpg)
 
+- 程序运行
 
+  打印出了字符“3”说明成功进入ring3，打印出了“C”说明在ring3下的提权调用成功了，重新回到ring0，实验结果符合预期。
+
+  ![代码e运行结果](osfs03-1.asset/1664119558480.jpg)
 
 ## 三、实验过程分析与故障记录
 
