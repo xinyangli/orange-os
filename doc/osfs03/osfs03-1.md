@@ -59,17 +59,49 @@ Ubuntu 14.04；bochs 2.7 .
 
   - LDTR寄存器：由一个可见的16位选择子和不可见的存着描述符的基址和限长的由CPU维护的高速缓冲（会随时变化）组成。
   
-- GDT寻址过程中的各个数据结构的**关系**：① 先从GDTR寄存器中获得GDT基址。② 在GDT中根据Selector确定Descriptor。③ Descriptor给出了段的基址，再根据程序中给出的偏移地址得到最终的线性地址。 ④ 访存。
+- GDT寻址过程中的各个数据结构的**关系**：
+  
+      ① 先从GDTR寄存器中获得GDT基址。
+      ② 在GDT中根据Selector确定Descriptor。
+      ③ Descriptor给出了段的基址，再根据程序中给出的偏移地址得到最终的线性地址。 
+      ④ 访存。
 
   ![GDT寻址过程](https://img-blog.csdnimg.cn/img_convert/ed70d022c9583a3a8b7f0b2af97f17ba.png)
 
-- LDT寻址过程中的各个数据结构的**关系**：① 先从GDTR寄存器中获得GDT基址。② 从LDTR寄存器中获取LDT的索引，并在GDT中找到LDT的描述符从而得到LDT段地址。③ 从选择子中得到的描述符索引找到目标段的描述符，然后得到最终的线性地址。 ④ 访存。
+- LDT寻址过程中的各个数据结构的**关系**：
+  
+      ① 先从GDTR寄存器中获得GDT基址。
+      ② 从LDTR寄存器中获取LDT的索引，并在GDT中找到LDT的描述符从而得到LDT段地址。
+      ③ 从选择子中得到的描述符索引找到目标段的描述符，然后得到最终的线性地址。
+      ④ 访存。
   
   ![LDT寻址过程](osfs03-1.asset/509f7d9a1288b7b91560e1c1add14fe4.jpg)
 
 - GDT与LDT访存方式并没有本质上的区别，只是通过LDT访存要现在GDT中查找该LDT的位置，可以它们之间的关系理解为GDT是“一级描述符表”，LDT是“二级描述符表”。
 
   <img src="osfs03-1.asset/f6b823309937ba18b98461b0cdf3d3f8.jpg" alt="GDT与LDT的关系" style="zoom: 220%;" />
+
+- 调用门的结构
+
+  调用门的结构如下图所示，如果选择子指向的描述符的DPL小于当前CPL则会发生提权，高32位中的低5位是调用调用门需要的参数数目。调用门的高16位和低16位为新的EIP。
+
+  ![调用门结构](osfs03-1.asset/call-gate.png)
+
+- 使用call指令调用的不同情况
+
+  - 短调用：call 立即数/寄存器/地址，调用后只有ESP与EIP发生变化（原EIP被压栈）。
+
+    ![短调用](osfs03-1.asset/short.png)
+
+  - 长调用：call cs:eip，CS指向调用门的选择子。
+  
+    - 不提权：旧的CS与EIP被压栈。
+
+      ![长调用不提权](osfs03-1.asset/long1.png)
+
+    - 提权：与不提权相比，栈段也会发生改变，具体过程将在代码/e/部分展开。
+
+      ![长调用提权](osfs03-1.asset/long2.png)
 
 ### 代码/a/：从实模式到保护模式
 
@@ -104,7 +136,7 @@ Ubuntu 14.04；bochs 2.7 .
 
     相关代码如下。
 
-  ```asm
+  ```x86asm
   ; 为加载 GDTR 作准备
   xor eax, eax
   mov ax, ds
@@ -124,7 +156,7 @@ Ubuntu 14.04；bochs 2.7 .
   
     相关代码如下。
 
-    ```asm
+    ```x86asm
     ; 关中断
     cli
     
@@ -140,7 +172,7 @@ Ubuntu 14.04；bochs 2.7 .
 
     相关代码如下。
 
-    ```asm
+    ```x86asm
     ; 准备切换到保护模式
     mov eax, cr0
     or  eax, 1
@@ -188,7 +220,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   SECTION.gdt中存放GDT的整个结构。首先是对各个Descriptor的定义。
 
-  ```asm
+  ```x86asm
   ; GDT
   ;                            段基址,          段界限 , 属性
   LABEL_GDT:         Descriptor    0,                0, 0             ; 空描述符
@@ -212,7 +244,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   然后定义了GdtLen和GdtPtr。最后设置好每一段对应的选择子。
 
-  ```asm
+  ```x86asm
   ; GDT 选择子
   SelectorNormal    equ LABEL_DESC_NORMAL - LABEL_GDT
   SelectorCode32    equ LABEL_DESC_CODE32 - LABEL_GDT
@@ -230,7 +262,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   切换为实模式的代码如下。
 
-  ```asm
+  ```x86asm
   ; 16 位代码段. 由 32 位代码段跳入, 跳出后到实模式
   [SECTION .s16code]
   ALIGN 32
@@ -258,7 +290,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   SelectorNormal是一个选择子，它指向Normal描述符。在准备从保护模式切换回实模式前，需要加载一个合适的描述符选择子到有关段寄存器，使得对应段描述符告诉缓冲寄存器包含合适的段界限和属性。Normal描述符就是为了实现这一点。然后将cr0的PE位置为0，最终跳转到REAL_ENTRY段。注意，表面上是jmp 0:LABEL_REAL_ENTRY，但是在程序前面已经对这条指令进行了修改：
 
-  ```asm
+  ```x86asm
   mov ax, cs
   mov ds, ax
   mov es, ax
@@ -273,7 +305,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   LABEL_REAL_ENTRY段的代码如下。主要步骤是：完成关A20，开中断操作，这些与之前从实模式跳转到保护模式的操作是互逆的。最终调用21h中断，返回DOS模式。
 
-  ```asm
+  ```x86asm
   LABEL_REAL_ENTRY:    ; 从保护模式跳回到实模式就到了这里
   mov ax, cs
   mov ds, ax
@@ -325,7 +357,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   同时还新增了两个section，分别为LDT和其中选择子指向的代码段：
 
-  ```asm
+  ```x86asm
   ; LDT
   [SECTION .ldt]
   ALIGN 32
@@ -476,13 +508,129 @@ Ubuntu 14.04；bochs 2.7 .
 
   该代码段会在屏幕第 12 行第 0 列显示一个字母 C。它的运行结果如下，符合我们的预期：
 
-  ![代码d的运行结果](osfs03-1.asset/debug-d.png)
+  ![该代码段的运行结果](osfs03-1.asset/debug-d.png)
+
+  后续代码与代码/c/类似，通过LDT打印一个字符L，最后结果符合预期。
+
+### 代码/e/：利用调用门进行特权级变换的转移
+
+阅读代码/e/，观察其与代码/d/的区别
+  
+- 新增的任务状态段tss和ring3以及对它们的定义和初始化
+  
+  ```diff
+  ；GDT描述符
+  + LABEL_DESC_CODE_RING3: Descriptor 0, SegCodeRing3Len-1, DA_C+DA_32+DA_DPL3
+  + LABEL_DESC_TSS:        Descriptor 0,          TSSLen-1, DA_386TSS           ;TSS
+
+  ；GDT选择子
+  + SelectorCodeRing3 equ LABEL_DESC_CODE_RING3 - LABEL_GDT + SA_RPL3
+  + SelectorTSS       equ LABEL_DESC_TSS        - LABEL_GDT
+  ```
+  
+  ```x86asm
+  ; 堆栈段ring3
+  [SECTION .s3]
+  ALIGN 32
+  [BITS 32]
+  LABEL_STACK3:
+  times 512 db 0
+  TopOfStack3 equ $ - LABEL_STACK3 - 1
+  ; END of [SECTION .s3]
+
+  ; 初始化堆栈段描述符(ring3)
+  xor eax, eax
+  mov ax, ds
+  shl eax, 4
+  add eax, LABEL_STACK3
+  mov word [LABEL_DESC_STACK3 + 2], ax
+  shr eax, 16
+  mov byte [LABEL_DESC_STACK3 + 4], al
+  mov byte [LABEL_DESC_STACK3 + 7], ah
+
+  ; 初始化Ring3描述符
+  xor eax, eax
+  mov ax, ds
+  shl eax, 4
+  add eax, LABEL_CODE_RING3
+  mov word [LABEL_DESC_CODE_RING3 + 2], ax
+  shr eax, 16
+  mov byte [LABEL_DESC_CODE_RING3 + 4], al
+  mov byte [LABEL_DESC_CODE_RING3 + 7], ah
+
+  ; 初始化 TSS 描述符
+  xor eax, eax
+  mov ax, ds
+  shl eax, 4
+  add eax, LABEL_TSS
+  mov word [LABEL_DESC_TSS + 2], ax
+  shr eax, 16
+  mov byte [LABEL_DESC_TSS + 4], al
+  mov byte [LABEL_DESC_TSS + 7], ah
+
+  ; TSS 
+  [SECTION .tss]
+  ALIGN 32
+  [BITS 32]
+  LABEL_TSS:
+      DD  0                 ; Back
+      DD  TopOfStack        ; 0 级堆栈
+      DD  SelectorStack     ; 
+      DD  0                 ; 1 级堆栈
+      DD  0                 ; 
+      DD  0                 ; 2 级堆栈
+      DD  0                 ; 
+      DD  0                 ; CR3
+      DD  0                 ; EIP
+      DD  0                 ; EFLAGS
+      DD  0                 ; EAX
+      DD  0                 ; ECX
+      DD  0                 ; EDX
+      DD  0                 ; EBX
+      DD  0                 ; ESP
+      DD  0                 ; EBP
+      DD  0                 ; ESI
+      DD  0                 ; EDI
+      DD  0                 ; ES
+      DD  0                 ; CS
+      DD  0                 ; SS
+      DD  0                 ; DS
+      DD  0                 ; FS
+      DD  0                 ; GS
+      DD  0                 ; LDT
+      DW  0                 ; 调试陷阱标志
+      DW  $ - LABEL_TSS + 2 ; I/O位图基址
+      DB  0ffh              ; I/O位图结束标志
+  TSSLen  equ $ - LABEL_TSS
+  ; TSS 
+  ```
+
+- ring3下的提权调用流程：跨特权级进行调用不能共享堆栈，防止不同特权级共用数据产生安全风险。
+
+      ①根据目标代码段的DPL（新的CPL）从TSS中提取SS与ESP。
+      ②检验SS、ESP、TSS界限和SS描述符，发生错误时产生异常。
+      ③暂时保存当前SS与ESP，加载新的SS与ESP，然后将刚才临时保存的SS与ESP压入新栈。
+      ④将数据从调用者（旧）的堆栈中复制到被调用者（新）的堆栈中，复制的参数数目由调用门的Param-Count决定。
+      ⑤将CS与EIP压栈并加载调用门中新的CS与EIP。
+      ⑥调用完成，执行被调用过程。
+
+- 如何找到TSS以及TSS的用途
+
+  CPU通过保存着16位选择子、32位基址、16位限长和当前任务的TSS属性的TR寄存器来找到TSS。通过上面的代码可以看到TSS中保存了ring0/1/2的栈段选择子和栈顶指针，以及大量其他寄存器。在本代码的提权调用中，SS0与ESP0被取出成为了新的SS与ESP，同时TSS还有一个功能就是在调用（或跳转）中将其他寄存器保存。综上：在call/jmp中，CPU会将TSS结构中有的所有寄存器都写入当前TR指向的TSS中，然后将新TSS的选择子指向的描述符加载的TR寄存器中，并将这个TSS中的寄存器值都提出来。
+
+  TR寄存器结构和利用TSS调用或跳转流程如下图：
+
+  ![TR寄存器](osfs03-1.asset/tr.png)
+
+  ![TR寄存器](osfs03-1.asset/1.jpg)
+
+
 
 ## 三、实验过程分析与故障记录
 
 - 在对代码/a/进行反汇编时，发现LABEL_SEG_CODE32段的代码与源码有一定的差异。源码中32位代码段如下：
 
-  ```asm
+  ```x86asm
   LABEL_SEG_CODE32:
     mov ax, SelectorVideo
     mov gs, ax                  ; 视频段选择子(目的)
@@ -551,8 +699,6 @@ Ubuntu 14.04；bochs 2.7 .
   上述问题同样已在实验步骤的分析中做了详细的解读。此处不再赘述。
 
 3. 思考题 3：解释不同权限代码的切换原理，call, jmp，retf使用场景如何，能够互换吗？
-
-
 
 4. 动手改 1：自定义添加1个GDT代码段、1个LDT代码段，GDT段内要对一个内存数据结构写入一段字符串，然后LDT段内代码段功能为读取并打印该GDT的内容。
 
