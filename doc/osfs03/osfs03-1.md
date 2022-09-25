@@ -543,7 +543,78 @@ Ubuntu 14.04；bochs 2.7 .
 
 ## 四、实验结果总结
 
-## 五、个人贡献与体会
+1. 思考题 1：GDT、Descriptor、Selector、GDTR结构，及其含义是什么？他们的关联关系如何？pm.inc所定义的宏怎么使用？
+
+  在前文实验步骤的概念分析中，已经对 GDT、Descriptor、Selector、GDTR 结构、含义和彼此的关系进行了分析，此处不再重复。
+
+  关于宏的使用问题，前面已经分析了足够多的例子（如 Descriptor，Gate 等）。
+
+2. 思考题 2；从实模式到保护模式，关键步骤有哪些？为什么要关中断？为什么要打开A20地址线？从保护模式切换回实模式，又需要哪些步骤？
+
+  上述问题同样已在实验步骤的分析中做了详细的解读。此处不再赘述。
+
+3. 思考题 3：解释不同权限代码的切换原理，call, jmp，retf使用场景如何，能够互换吗？
+
+
+
+4. 动手改 1：自定义添加1个GDT代码段、1个LDT代码段，GDT段内要对一个内存数据结构写入一段字符串，然后LDT段内代码段功能为读取并打印该GDT的内容。
+
+5. 动手改 2：自定义2个GDT代码段A、B，分属于不同特权级，功能自定义，要求实现A-->B的跳转，以及B-->A的跳转。
+
+6. 改进意见：
+
+  - 我们查阅了官方文档。认为可以将繁琐的描述符初始化定义成宏，使代码更简洁、可读。同时，Magic Break 的语句也可写成宏，方便调试的进行。
+
+    ```x86asm
+    ; Usage: InitSeg label_gdt, label_seg
+    ; Initilize base address of a segment descriptor in the GDT
+    ;
+    ; label_gdt: Label name of Descriptor in gdt
+    ; label_seg: Label at the start of the segment
+    %macro InitSeg 2
+        xor eax, eax
+        mov ax, cs
+        shl eax, 4
+        add eax, %2
+        mov word [%1 + 2], ax
+        shr eax, 16
+        mov byte [%1 + 4], al
+        mov byte [%1 + 7], ah
+    %endmacro
+
+    ; Usage: DebugBreak
+    ; Set magic breakpoint for bochs
+    %macro DebugBreak 0
+        %ifdef DEBUG
+        xchg bx, bx
+        %endif
+    %endmacro
+    ```
+
+  - 随书源码在定义描述符的属性时，使用了粗暴的将值加起来的写法。
+
+    像这样的：
+
+    ```x86asm
+    LABEL_DESC_STACK3:     Descriptor 0,       TopOfStack3, DA_DRWA + DA_32 + DA_DPL3
+    ```
+
+    虽然属性的表示位确实是彼此不同的，但我们认为这样的写法不够严谨。更准确合适的写法应该是：
+
+    ```x86asm
+    LABEL_DESC_STACK3:     Descriptor 0,       TopOfStack3, DA_DRWA | DA_32 | DA_DPL3
+    ```
+
+  - `mount -o loop ...` 指令使用了 loop device 这一伪设备，因此每次都需要 sudo 权限。
+
+    我们可以使用工具包 libguestfs-tools，这样就可以使用不需要 sudo 权限的 guestmount 来挂载虚拟软盘了。
+
+    这样在调试和 make 的时候就可以少输入几次密码了。
+
+## 五、各人的实验贡献
+
+
+
 
 ## 六、教师评价
 
