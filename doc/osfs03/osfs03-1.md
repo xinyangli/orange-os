@@ -106,11 +106,11 @@ Ubuntu 14.04；bochs 2.7 .
 
   ```asm
   ; 为加载 GDTR 作准备
-  xor	eax, eax
-  mov	ax, ds
-  shl	eax, 4
-  add	eax, LABEL_GDT          ; eax <- gdt 基地址
-  mov	dword [GdtPtr + 2], eax	; [GdtPtr + 2] <- gdt 基地址
+  xor eax, eax
+  mov ax, ds
+  shl eax, 4
+  add eax, LABEL_GDT          ; eax <- gdt 基地址
+  mov dword [GdtPtr + 2], eax ; [GdtPtr + 2] <- gdt 基地址
   
   ; 加载 GDTR
   lgdt [GdtPtr]
@@ -122,17 +122,16 @@ Ubuntu 14.04；bochs 2.7 .
 
     - 打开A20地址线的原因：在8086和8088中，16位段地址+16位偏移地址能够表示的最大地址为FFFF:FFFF即0x10FFEF，但由于20根地址线最大只能表示0xFFFFF，所以采用了一种被称为wrap-around的技术来处理：当表示的地址大于0xFFFFF时，对其进行求模运算，使其从0重新开始，例如FFFF:0010实际表示的地址为0x0。但是80286的地址总线为24根（它仍然是16位），可以访问0x100000及以上的地址，Intel为了兼容8086和8088的特性，将这第21根地址线A20设为可被软件控制的，当A20关闭时，80286保留上述求模运算（地址第20位永远为0），开启时则可以访问0x100000及以上的地址（可以改地址第20位的值为1），这根地址线的开关也在以后的更新换代中被保留了下来。在本实验中，打开A20可以保证保护模式下内存地址连续。
   
-  
-    <br/>相关代码如下。
+    相关代码如下。
 
     ```asm
     ; 关中断
     cli
     
     ; 打开地址线A20
-    in	al, 92h
-    or	al, 00000010b
-    out	92h, al
+    in  al, 92h
+    or  al, 00000010b
+    out 92h, al
     ```
 
   - 切换到保护模式
@@ -143,9 +142,9 @@ Ubuntu 14.04；bochs 2.7 .
 
     ```asm
     ; 准备切换到保护模式
-    mov	eax, cr0
-    or	eax, 1
-    mov	cr0, eax
+    mov eax, cr0
+    or  eax, 1
+    mov cr0, eax
     ```
 
 - 程序修改
@@ -215,13 +214,13 @@ Ubuntu 14.04；bochs 2.7 .
 
   ```asm
   ; GDT 选择子
-  SelectorNormal		equ	LABEL_DESC_NORMAL	- LABEL_GDT
-  SelectorCode32		equ	LABEL_DESC_CODE32	- LABEL_GDT
-  SelectorCode16		equ	LABEL_DESC_CODE16	- LABEL_GDT
-  SelectorData	    equ	LABEL_DESC_DATA		- LABEL_GDT
-  SelectorStack	    equ	LABEL_DESC_STACK	- LABEL_GDT
-  SelectorTest	    equ	LABEL_DESC_TEST		- LABEL_GDT
-  SelectorVideo	    equ	LABEL_DESC_VIDEO	- LABEL_GDT
+  SelectorNormal    equ LABEL_DESC_NORMAL - LABEL_GDT
+  SelectorCode32    equ LABEL_DESC_CODE32 - LABEL_GDT
+  SelectorCode16    equ LABEL_DESC_CODE16 - LABEL_GDT
+  SelectorData      equ LABEL_DESC_DATA   - LABEL_GDT
+  SelectorStack     equ LABEL_DESC_STACK  - LABEL_GDT
+  SelectorTest      equ LABEL_DESC_TEST   - LABEL_GDT
+  SelectorVideo     equ LABEL_DESC_VIDEO  - LABEL_GDT
   ;
   ```
 
@@ -234,25 +233,25 @@ Ubuntu 14.04；bochs 2.7 .
   ```asm
   ; 16 位代码段. 由 32 位代码段跳入, 跳出后到实模式
   [SECTION .s16code]
-  ALIGN	32
-  [BITS	16]
-  LABEL_SEG_CODE16:
-  	; 跳回实模式:
-  	mov	ax, SelectorNormal
-  	mov	ds, ax
-  	mov	es, ax
-  	mov	fs, ax
-  	mov	gs, ax
-  	mov	ss, ax
+  ALIGN 32
+  [BITS 16]
+  LABEL SEG_CODE16:
+    ; 跳回实模式:
+    mov ax, SelectorNormal
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
   
-  	mov	eax, cr0
-  	and	al, 11111110b
-  	mov	cr0, eax
+    mov eax, cr0
+    and al, 11111110b
+    mov cr0, eax
   
   LABEL_GO_BACK_TO_REAL:
-  	jmp	0:LABEL_REAL_ENTRY	; 段地址会在程序开始处被设置成正确的值
+    jmp 0:LABEL_REAL_ENTRY  ; 段地址会在程序开始处被设置成正确的值
   
-  Code16Len	equ	$ - LABEL_SEG_CODE16
+  Code16Len equ $ - LABEL_SEG_CODE16
   
   ; END of [SECTION .s16code]
   ```
@@ -260,14 +259,14 @@ Ubuntu 14.04；bochs 2.7 .
   SelectorNormal是一个选择子，它指向Normal描述符。在准备从保护模式切换回实模式前，需要加载一个合适的描述符选择子到有关段寄存器，使得对应段描述符告诉缓冲寄存器包含合适的段界限和属性。Normal描述符就是为了实现这一点。然后将cr0的PE位置为0，最终跳转到REAL_ENTRY段。注意，表面上是jmp 0:LABEL_REAL_ENTRY，但是在程序前面已经对这条指令进行了修改：
 
   ```asm
-  mov	ax, cs
-  mov	ds, ax
-  mov	es, ax
-  mov	ss, ax
-  mov	sp, 0100h
+  mov ax, cs
+  mov ds, ax
+  mov es, ax
+  mov ss, ax
+  mov sp, 0100h
 
-  mov	[LABEL_GO_BACK_TO_REAL+3], ax
-  mov	[SPValueInRealMode], sp
+  mov [LABEL_GO_BACK_TO_REAL+3], ax
+  mov [SPValueInRealMode], sp
   ```
 
   所以实际上，这条指令在执行时变成了jmp cs_real_mode:LABEL_REAL_ENTRY。这样就能够正确跳转到目标位置。
@@ -312,15 +311,15 @@ Ubuntu 14.04；bochs 2.7 .
 
   ```diff
     ; GDT
-    ;                                         段基址,       段界限     , 属性
-    LABEL_GDT:         Descriptor       0,                 0, 0     	; 空描述符
-    LABEL_DESC_NORMAL: Descriptor       0,            0ffffh, DA_DRW	; Normal 描述符
-    LABEL_DESC_CODE32: Descriptor       0,  SegCode32Len - 1, DA_C + DA_32	; 非一致代码段, 32
-    LABEL_DESC_CODE16: Descriptor       0,            0ffffh, DA_C		; 非一致代码段, 16
-    LABEL_DESC_DATA:   Descriptor       0,       DataLen - 1, DA_DRW+DA_DPL1	; Data
-    LABEL_DESC_STACK:  Descriptor       0,        TopOfStack, DA_DRWA + DA_32; Stack, 32 位
-  + LABEL_DESC_LDT:    Descriptor       0,        LDTLen - 1, DA_LDT	; LDT
-    LABEL_DESC_VIDEO:  Descriptor 0B8000h,            0ffffh, DA_DRW	; 显存首地址
+    ;                                         段基址,         段界限,           属性
+    LABEL_GDT:         Descriptor       0,                 0, 0               ; 空描述符
+    LABEL_DESC_NORMAL: Descriptor       0,            0ffffh, DA_DRW          ; Normal 描述符
+    LABEL_DESC_CODE32: Descriptor       0,  SegCode32Len - 1, DA_C + DA_32    ; 非一致代码段, 32
+    LABEL_DESC_CODE16: Descriptor       0,            0ffffh, DA_C            ; 非一致代码段, 16
+    LABEL_DESC_DATA:   Descriptor       0,       DataLen - 1, DA_DRW+DA_DPL1  ; Data
+    LABEL_DESC_STACK:  Descriptor       0,        TopOfStack, DA_DRWA + DA_32 ; Stack, 32 位
+  + LABEL_DESC_LDT:    Descriptor       0,        LDTLen - 1, DA_LDT          ; LDT
+    LABEL_DESC_VIDEO:  Descriptor 0B8000h,            0ffffh, DA_DRW          ; 显存首地址
     ; GDT 结束
   ```
 
@@ -329,33 +328,33 @@ Ubuntu 14.04；bochs 2.7 .
   ```asm
   ; LDT
   [SECTION .ldt]
-  ALIGN	32
+  ALIGN 32
   LABEL_LDT:
   ;                            段基址       段界限      属性
   LABEL_LDT_DESC_CODEA: Descriptor 0, CodeALen - 1, DA_C + DA_32  ; Code, 32 位
 
-  LDTLen		equ	$ - LABEL_LDT
+  LDTLen    equ $ - LABEL_LDT
 
   ; LDT 选择子
-  SelectorLDTCodeA	equ	LABEL_LDT_DESC_CODEA	- LABEL_LDT + SA_TIL
+  SelectorLDTCodeA  equ LABEL_LDT_DESC_CODEA  - LABEL_LDT + SA_TIL
   ; END of [SECTION .ldt]
 
   ; CodeA (LDT, 32 位代码段)
   [SECTION .la]
-  ALIGN	32
-  [BITS	32]
+  ALIGN 32
+  [BITS 32]
   LABEL_CODE_A:
-  mov	ax, SelectorVideo
-  mov	gs, ax			; 视频段选择子(目的)
+  mov ax, SelectorVideo
+  mov gs, ax                  ; 视频段选择子(目的)
 
-  mov	edi, (80 * 12 + 0) * 2	; 屏幕第 10 行, 第 0 列。
-  mov	ah, 0Ch			; 0000: 黑底    1100: 红字
-  mov	al, 'L'
-  mov	[gs:edi], ax
+  mov edi, (80 * 12 + 0) * 2  ; 屏幕第 10 行, 第 0 列。
+  mov ah, 0Ch                 ; 0000: 黑底    1100: 红字
+  mov al, 'L'
+  mov [gs:edi], ax
 
   ; 准备经由16位代码段跳回实模式
-  jmp	SelectorCode16:0
-  CodeALen	equ	$ - LABEL_CODE_A
+  jmp SelectorCode16:0
+  CodeALen  equ $ - LABEL_CODE_A
   ; END of [SECTION .la]
   ```
 
@@ -369,7 +368,6 @@ Ubuntu 14.04；bochs 2.7 .
 
   可以看到成功打印了保护模式中的字符串和LDT中的字母"L"，结果符合预期。
 
-## 三、实验过程分析
 ### 代码/d/：同权限级的段间切换
 
 - 三类段间的权限访问规则
@@ -395,7 +393,7 @@ Ubuntu 14.04；bochs 2.7 .
   - 在权限访问规则中的作用：
 
     我们不难想到，前面所谓的“特权级由低到高”等说法，体现在这里，就是对 CPL 和 DPL 的值进行比较。
-    
+
     通常情况下，CPL 会随着当前代码段权限的变化而变化。特殊的，当程序转移到一致代码段时，CPL 保持不变。
 
     DPL 则是对试图访问段的程序的 CPL 或 RPL 进行了限制。这一限制在不同类型的段下有不同的体现：
@@ -406,9 +404,8 @@ Ubuntu 14.04；bochs 2.7 .
     | 非一致代码段（不使用调用门） | $CPL = DPL$ |
     | 一致代码段与门调用的非一致代码段 | $CPL \geq DPL$ |
 
-
     而 RPL 则是在考虑了调用机制后对这一规则的补充。
-    
+
     > 具体的，当程序从低特权级的代码段转移到高特权级的非一致代码段（比如通过系统调用）时，CPL 会改变，当前权限级会提高。  
     > 如果没有 RPL，应用程序就可以借助系统调用的高权限，来非法地访问自己权限不足以访问的段。  
     > 为了避免这一现象，操作系统会在被调用过程接收到从调用过程传来的选择子时，将调用者的 CPL 存储在这个选择子的 RPL 中。综合 RPL 和 CPL，来决定是否有访问段的权限。
@@ -424,13 +421,13 @@ Ubuntu 14.04；bochs 2.7 .
   ```x86asm
   [SECTION .gdt]
   ...
-  LABEL_DESC_CODE_DEST: Descriptor 0,SegCodeDestLen-1, DA_C+DA_32; 非一致代码段,32
+  LABEL_DESC_CODE_DEST: Descriptor              0,  SegCodeDestLen-1, DA_C+DA_32; 非一致代码段,32
   ...
-  LABEL_CALL_GATE_TEST: Gate SelectorCodeDest,   0,     0, DA_386CGate+DA_DPL0
+  LABEL_CALL_GATE_TEST: Gate SelectorCodeDest,  0,  0,                DA_386CGate+DA_DPL0
   ...
-  SelectorCodeDest	equ	LABEL_DESC_CODE_DEST	- LABEL_GDT
+  SelectorCodeDest      equ LABEL_DESC_CODE_DEST  - LABEL_GDT
   ...
-  SelectorCallGateTest	equ	LABEL_CALL_GATE_TEST	- LABEL_GDT
+  SelectorCallGateTest  equ LABEL_CALL_GATE_TEST  - LABEL_GDT
   ...
   ```
 
@@ -440,14 +437,14 @@ Ubuntu 14.04；bochs 2.7 .
   [SECTION .s16]
   ...
   ; 初始化测试调用门的代码段描述符
-	xor	eax, eax
-	mov	ax, cs
-	shl	eax, 4
-	add	eax, LABEL_SEG_CODE_DEST
-	mov	word [LABEL_DESC_CODE_DEST + 2], ax
-	shr	eax, 16
-	mov	byte [LABEL_DESC_CODE_DEST + 4], al
-	mov	byte [LABEL_DESC_CODE_DEST + 7], ah
+  xor eax, eax
+  mov ax, cs
+  shl eax, 4
+  add eax, LABEL_SEG_CODE_DEST
+  mov word [LABEL_DESC_CODE_DEST + 2], ax
+  shr eax, 16
+  mov byte [LABEL_DESC_CODE_DEST + 4], al
+  mov byte [LABEL_DESC_CODE_DEST + 7], ah
   ...
   ```
 
@@ -457,47 +454,46 @@ Ubuntu 14.04；bochs 2.7 .
   [SECTION .s32]; 32 位代码段. 由实模式跳入.
   ...
   ; 测试调用门（无特权级变换），将打印字母 'C'
-	call	SelectorCallGateTest:0
-	;call	SelectorCodeDest:0
+  call  SelectorCallGateTest:0
+  ;call SelectorCodeDest:0
   ...
 
   [SECTION .sdest]; 调用门目标段
-  [BITS	32]
+  [BITS 32]
   LABEL_SEG_CODE_DEST:
-  	;jmp	$
-  	mov	ax, SelectorVideo
-  	mov	gs, ax			; 视频段选择子(目的)
-  	mov	edi, (80 * 12 + 0) * 2	; 屏幕第 12 行, 第 0 列。
-  	mov	ah, 0Ch			; 0000: 黑底    1100: 红字
-  	mov	al, 'C'
-  	mov	[gs:edi], ax
-  	retf
-  SegCodeDestLen	equ	$ - LABEL_SEG_CODE_DEST
+    ;jmp  $
+    mov ax, SelectorVideo
+    mov gs, ax                  ; 视频段选择子(目的)
+    mov edi, (80 * 12 + 0) * 2  ; 屏幕第 12 行, 第 0 列。
+    mov ah, 0Ch                 ; 0000: 黑底    1100: 红字
+    mov al, 'C'
+    mov [gs:edi], ax
+    retf
+  SegCodeDestLen  equ $ - LABEL_SEG_CODE_DEST
   ; END of [SECTION .sdest]
   ...
   ```
 
   该代码段会在屏幕第 12 行第 0 列显示一个字母 C。它的运行结果如下，符合我们的预期：
 
-  ![](osfs03-1.asset/debug-d.png)
-
+  ![debug-d](osfs03-1.asset/debug-d.png)
 
 ## 三、实验过程分析与故障记录
 
 - 在对代码/a/进行反汇编时，发现LABEL_SEG_CODE32段的代码与源码有一定的差异。源码中32位代码段如下：
 
-  ```
+  ```asm
   LABEL_SEG_CODE32:
-  	mov	ax, SelectorVideo
-  	mov	gs, ax			; 视频段选择子(目的)
+    mov ax, SelectorVideo
+    mov gs, ax                  ; 视频段选择子(目的)
   
-  	mov	edi, (80 * 11 + 79) * 2	; 屏幕第 11 行, 第 79 列。
-  	mov	ah, 0Ch			; 0000: 黑底    1100: 红字
-  	mov	al, 'P'
-  	mov	[gs:edi], ax
+    mov edi, (80 * 11 + 79) * 2 ; 屏幕第 11 行, 第 79 列。
+    mov ah, 0Ch                 ; 0000: 黑底    1100: 红字
+    mov al, 'P'
+    mov [gs:edi], ax
   
-  	; 到此停止
-  	jmp	$
+    ; 到此停止
+    jmp $
   ```
 
   反汇编后：
@@ -506,7 +502,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   在 bochs 中进行调试对比，我们不难发现，反汇编程序把对齐用的三个字节的 0 当成了指令。
 
-  ![](osfs03-1.asset/diff-ndisasm.png)
+  ![diff-ndisasm](osfs03-1.asset/diff-ndisasm.png)
 
   我们联想到是反汇编默认采用的是16位反汇编。于是修改ndisasm的参数，令其以32位进行反汇编。结果如下：
 
@@ -516,7 +512,7 @@ Ubuntu 14.04；bochs 2.7 .
 
 - 在尝试将 pmtest1.asm 作为引导程序运行时出现故障：
 
-  ![](osfs03-1.asset/error-1.png)
+  ![error-1](osfs03-1.asset/error-1.png)
 
   原因是 pmtest1.asm 与实验一的代码不同，它不包含填充到 510 字节和写入 0xaa55 的部分。而且由于它有很多的 section，直接使用 `times 510-($-$$)` 是不行的，因为 \$\$ 针对的是当前段。
 
@@ -530,7 +526,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   这样做直接在 bash 或 zsh 下运行时是可行的。但当我们将其写入 makefile 文件中后，却发现无法正常写入：
 
-  ![](osfs03-1.asset/error-2.png)
+  ![error-2](osfs03-1.asset/error-2.png)
 
   它写入了莫名其妙的 0x6e2d。
 
