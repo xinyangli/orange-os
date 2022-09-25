@@ -219,7 +219,119 @@ Ubuntu 14.04；bochs 2.7 .
 
   程序运行正确，最终程序运行完毕后，又回到了实模式下的DOS。
 
-#### 三、实验过程分析
+##### 代码/d/：一致代码段、非一致代码段、数据段的权限访问规则，CPL、DPL、RPL 之间的关系，以及段间切换的基本方法
+
+- 三类段间的权限访问规则
+  
+  |                | 特权级低到高 | 特权级高到低 | 相同特权级之间 |
+  | ---------      | ----------- | ----------- | --------- |
+  | **一致代码段**  |    允许     |    不允许   |   允许     |
+  | **非一致代码段** | 不允许  | 不允许 |  允许 |
+  | **数据段**  |  不允许 |  允许  |  允许 |
+
+- CPL、DPL 与 RPL
+  
+  - 三者功能的基本描述：
+
+    CPL、DPL、RPL 都是段访问机制中的特权级表示位。它的值是 0 ~ 3，描述了特权级的高低。（0 为最高，3 为最低）
+
+    其中，**CPL** (Current Privilege Level) 描述当前执行程序或者任务的特权级。存储在 CS 和 SS 的第 0 位和第 1 位。
+
+    **DPL** (Descriptor Privilege Level) 描述段或者门的特权级。存储在描述符的 DPL 字段中。
+
+    **RPL** (Request Privilege Level) 描述选择子的权限级。存储在选择子的第 0 位和第 1 位。
+
+  - 在权限访问规则中的作用：
+
+    我们不难想到，前面所谓的“特权级由低到高”等说法，体现在这里，就是对 CPL 和 DPL 的值进行比较。
+    
+    通常情况下，CPL 会随着当前代码段权限的变化而变化。特殊的，当程序转移到一致代码段时，CPL 保持不变。
+
+    DPL 则是对试图访问段的程序的 CPL 或 RPL 进行了限制。这一限制在不同类型的段下有不同的体现：
+
+    | 段类型 | 限制要求 |
+    | --- | --- |
+    | 数据段、调用门 | $CPL \leq DPL$ |
+    | 非一致代码段（不使用调用门） | $CPL = DPL$ |
+    | 一致代码段与门调用的非一致代码段 | $CPL \geq DPL$ |
+
+
+    而 RPL 则是在考虑了调用机制后对这一规则的补充。
+    
+    > 具体的，当程序从低特权级的代码段转移到高特权级的非一致代码段（比如通过系统调用）时，CPL 会改变，当前权限级会提高。  
+    > 如果没有 RPL，应用程序就可以借助系统调用的高权限，来非法地访问自己权限不足以访问的段。  
+    > 为了避免这一现象，操作系统会在被调用过程接收到从调用过程传来的选择子时，将调用者的 CPL 存储在这个选择子的 RPL 中。综合 RPL 和 CPL，来决定是否有访问段的权限。
+
+- 代码阅读
+  
+  本节的代码 pmtest4.asm，给出了同权限级的段间转移示例。相比前面，它重要的部分如下：
+
+  首先，是门描述符和选择子的定义。不难发现，它的定义方式与段描述符的方法类似。通过 pm.inc 中的宏 Gate，可以将门的四个部分：目标选择子、偏移、DCount、属性方便地格式化为规定的形式。
+  
+  代码段中的 LABEL_DESC_CODE_DEST，则是被调用段的描述符。DA_C 和 DA_32 两个参数，表示它是个非一致的 32 位代码段。
+
+  ```x86asm
+  [SECTION .gdt]
+  ...
+  LABEL_DESC_CODE_DEST: Descriptor 0,SegCodeDestLen-1, DA_C+DA_32; 非一致代码段,32
+  ...
+  LABEL_CALL_GATE_TEST: Gate SelectorCodeDest,   0,     0, DA_386CGate+DA_DPL0
+  ...
+  SelectorCodeDest	equ	LABEL_DESC_CODE_DEST	- LABEL_GDT
+  ...
+  SelectorCallGateTest	equ	LABEL_CALL_GATE_TEST	- LABEL_GDT
+  ...
+  ```
+
+  接下来是被调用代码段的描述符初始化。类似与前面其它的段描述符初始化。
+
+  ```x86asm
+  [SECTION .s16]
+  ...
+  ; 初始化测试调用门的代码段描述符
+	xor	eax, eax
+	mov	ax, cs
+	shl	eax, 4
+	add	eax, LABEL_SEG_CODE_DEST
+	mov	word [LABEL_DESC_CODE_DEST + 2], ax
+	shr	eax, 16
+	mov	byte [LABEL_DESC_CODE_DEST + 4], al
+	mov	byte [LABEL_DESC_CODE_DEST + 7], ah
+  ...
+  ```
+
+  通过 call 指令，我们可以对门进行调用。由于此处都是 ring 0，满足非一致代码段的权限访问要求，因此直接访问代码段和调用门都是可行的。
+
+  ```x86asm
+  [SECTION .s32]; 32 位代码段. 由实模式跳入.
+  ...
+  ; 测试调用门（无特权级变换），将打印字母 'C'
+	call	SelectorCallGateTest:0
+	;call	SelectorCodeDest:0
+  ...
+
+  [SECTION .sdest]; 调用门目标段
+  [BITS	32]
+  LABEL_SEG_CODE_DEST:
+  	;jmp	$
+  	mov	ax, SelectorVideo
+  	mov	gs, ax			; 视频段选择子(目的)
+  	mov	edi, (80 * 12 + 0) * 2	; 屏幕第 12 行, 第 0 列。
+  	mov	ah, 0Ch			; 0000: 黑底    1100: 红字
+  	mov	al, 'C'
+  	mov	[gs:edi], ax
+  	retf
+  SegCodeDestLen	equ	$ - LABEL_SEG_CODE_DEST
+  ; END of [SECTION .sdest]
+  ...
+  ```
+
+  该代码段会在屏幕第 12 行第 0 列显示一个字母 C。它的运行结果如下，符合我们的预期：
+
+  ![](osfs03-1.asset/debug-d.png)
+
+
+#### 三、实验过程分析与故障记录
 
 - 在对代码/a/进行反汇编时，发现LABEL_SEG_CODE32段的代码与源码有一定的差异。源码中32位代码段如下：
 
@@ -241,11 +353,45 @@ Ubuntu 14.04；bochs 2.7 .
 
   ![image-20220923151238759](osfs03-1.asset/image-20220923151238759.png)
 
+  在 bochs 中进行调试对比，我们不难发现，反汇编程序把对齐用的三个字节的 0 当成了指令。
+
+  ![](osfs03-1.asset/diff-ndisasm.png)
+
   我们联想到是反汇编默认采用的是16位反汇编。于是修改ndisasm的参数，令其以32位进行反汇编。结果如下：
 
   ![image-20220923151828913](osfs03-1.asset/image-20220923151828913.png)
 
   此时能够与源码对应上。
+
+- 在尝试将 pmtest1.asm 作为引导程序运行时出现故障：
+
+  ![](osfs03-1.asset/error-1.png)
+
+  原因是 pmtest1.asm 与实验一的代码不同，它不包含填充到 510 字节和写入 0xaa55 的部分。而且由于它有很多的 section，直接使用 `times 510-($-$$)` 是不行的，因为 \$\$ 针对的是当前段。
+
+  因此，我们需要使用指令来写入 0xaa55。
+
+  ```bash
+  echo -ne "\x55\xaa" | dd of=a.img seek=510 bs=1 count=2 conv=notrunc
+  ```
+
+  通过 `-e`，来让 echo 输出特殊的转义字符到标准输出中，并作为 dd 的标准输入写入 a.img 的特定位置。
+
+  这样做直接在 bash 或 zsh 下运行时是可行的。但当我们将其写入 makefile 文件中后，却发现无法正常写入：
+
+  ![](osfs03-1.asset/error-2.png)
+
+  它写入了莫名其妙的 0x6e2d。
+
+  经过查表发现，0x6e2d 其实是字符串 "-n" 的 16 进制表示。通过查阅资料得知，make 默认使用 sh 来执行指令，而在高版本 ubuntu 中，为了加快脚本执行的速度，/bin/sh 默认使用的是 dash 而不是 bash。dash 并不支持 -ne 这样的参数。
+
+  在 Makefile 中加上一行声明 shell 即可。
+
+  ```makefile
+  SHELL=/bin/bash
+  ```
+
+- 
 
 #### 四、实验结果总结
 
