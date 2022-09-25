@@ -41,7 +41,7 @@ Ubuntu 14.04；bochs 2.7 .
   - GDT/LDT：由多个描述符(Descriptor)组成，提供段式存储机制。
   - Descriptor：每一个Descriptor定义一个段，其结构如下：
   
-    ![image-20210912110635291](https://img-blog.csdnimg.cn/img_convert/e5ad29915579458760da68d3c17b2064.png)
+    ![Descriptor结构](https://img-blog.csdnimg.cn/img_convert/e5ad29915579458760da68d3c17b2064.png)
   
   ​ 段基址：共32位，存放在不连续的四个字节中，用于寻址。
   
@@ -51,31 +51,31 @@ Ubuntu 14.04；bochs 2.7 .
   
   - Selector：给出描述符在GDT/LDT的索引号、GDT/LDT标志TI(Table Indicator)以及特权级RPL，当TI=0时表示段描述符在GDT中，当TI=1时表示段描述符在LDT中。
   
-    <img src="osfs03-1.asset/selector.png" alt="selector" style="zoom: 120%;" />
+    <img src="osfs03-1.asset/selector.png" alt="Selector" style="zoom: 120%;" />
   
   - GDTR寄存器：保存GDT的起始地址和界限。
   
-     ![GDTR](osfs03-1.asset/GDTR.png)
+     ![GDTR结构](osfs03-1.asset/GDTR.png)
 
   - LDTR寄存器：由一个可见的16位选择子和不可见的存着描述符的基址和限长的由CPU维护的高速缓冲（会随时变化）组成。
   
 - GDT寻址过程中的各个数据结构的**关系**：① 先从GDTR寄存器中获得GDT基址。② 在GDT中根据Selector确定Descriptor。③ Descriptor给出了段的基址，再根据程序中给出的偏移地址得到最终的线性地址。 ④ 访存。
 
-  ![QQ图片20210910104225](https://img-blog.csdnimg.cn/img_convert/ed70d022c9583a3a8b7f0b2af97f17ba.png)
+  ![GDT寻址过程](https://img-blog.csdnimg.cn/img_convert/ed70d022c9583a3a8b7f0b2af97f17ba.png)
 
 - LDT寻址过程中的各个数据结构的**关系**：① 先从GDTR寄存器中获得GDT基址。② 从LDTR寄存器中获取LDT的索引，并在GDT中找到LDT的描述符从而得到LDT段地址。③ 从选择子中得到的描述符索引找到目标段的描述符，然后得到最终的线性地址。 ④ 访存。
   
-  ![509f7d9a1288b7b91560e1c1add14fe4](osfs03-1.asset/509f7d9a1288b7b91560e1c1add14fe4.jpg)
+  ![LDT寻址过程](osfs03-1.asset/509f7d9a1288b7b91560e1c1add14fe4.jpg)
 
 - GDT与LDT访存方式并没有本质上的区别，只是通过LDT访存要现在GDT中查找该LDT的位置，可以它们之间的关系理解为GDT是“一级描述符表”，LDT是“二级描述符表”。
 
-  <img src="osfs03-1.asset/f6b823309937ba18b98461b0cdf3d3f8.jpg" style="zoom: 220%;" />
+  <img src="osfs03-1.asset/f6b823309937ba18b98461b0cdf3d3f8.jpg" alt="GDT与LDT的关系" style="zoom: 220%;" />
 
 ### 代码/a/：从实模式到保护模式
 
 - 代码流程图
 
-  ![exp2](osfs03-1.asset/exp2.png)
+  ![从实模式到保护模式的流程图](osfs03-1.asset/exp2.png)
 
 - 运行源码程序
 
@@ -94,7 +94,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   - 在FreeDos中运行程序。
 
-    ![image-20220923100921760](osfs03-1.asset/image-20220923100921760.png)
+    ![pmtest1的运行结果](osfs03-1.asset/image-20220923100921760.png)
 
   ​可以看到在bochs窗口右侧中出现红色的P，说明程序正确运行。
 
@@ -152,7 +152,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   将源代码中jmp dword SelectorCode32:0一句中的dword删除，重新编译并运行。结果发现程序仍然能够正常运行，窗口中仍然能够显示p。
 
-  ![image-20220923111144854](osfs03-1.asset/image-20220923111144854.png)
+  ![删除dword后的pmtest1的运行结果](osfs03-1.asset/image-20220923111144854.png)
 
   对源程序和修改程序的对应二进制文件进行反汇编，对比如下。
 
@@ -298,7 +298,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   对asm文件编译，并拷贝到磁盘中。在DOS模式中运行该程序。结果如下图：
 
-  ![image-20220923161703295](osfs03-1.asset/image-20220923161703295.png)
+  ![pmtest2运行结果](osfs03-1.asset/image-20220923161703295.png)
 
   程序运行正确，最终程序运行完毕后，又回到了实模式下的DOS。
 
@@ -369,6 +369,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   可以看到成功打印了保护模式中的字符串和LDT中的字母"L"，结果符合预期。
 
+## 三、实验过程分析
 ### 代码/d/：同权限级的段间切换
 
 - 三类段间的权限访问规则
