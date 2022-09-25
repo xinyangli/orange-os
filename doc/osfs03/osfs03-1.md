@@ -43,21 +43,21 @@ Ubuntu 14.04；bochs 2.7 .
   
     ![image-20210912110635291](https://img-blog.csdnimg.cn/img_convert/e5ad29915579458760da68d3c17b2064.png)
   
-  ​		段基址：共32位，存放在不连续的四个字节中，用于寻址。
+  ​ 段基址：共32位，存放在不连续的四个字节中，用于寻址。
   
-  ​		段界限：共20位，表示的是段边界的扩展最值。
+  ​ 段界限：共20位，表示的是段边界的扩展最值。
   
-  ​		其余是相关属性位，用这些额外的属性来提高安全性。
+  ​ 其余是相关属性位，用这些额外的属性来提高安全性。
   
   - Selector：给出描述符在GDT/LDT的索引号、GDT/LDT标志TI(Table Indicator)以及特权级RPL，当TI=0时表示段描述符在GDT中，当TI=1时表示段描述符在LDT中。
   
-     <img src="osfs03-1.asset/selector.png" alt="selector" style="zoom: 120%;" />
+    <img src="osfs03-1.asset/selector.png" alt="selector" style="zoom: 120%;" />
   
-   - GDTR寄存器：保存GDT的起始地址和界限。
+  - GDTR寄存器：保存GDT的起始地址和界限。
   
      ![GDTR](osfs03-1.asset/GDTR.png)
 
-   - LDTR寄存器：由一个可见的16位选择子和不可见的存着描述符的基址和限长的由CPU维护的高速缓冲（会随时变化）组成。
+  - LDTR寄存器：由一个可见的16位选择子和不可见的存着描述符的基址和限长的由CPU维护的高速缓冲（会随时变化）组成。
   
 - GDT寻址过程中的各个数据结构的**关系**：① 先从GDTR寄存器中获得GDT基址。② 在GDT中根据Selector确定Descriptor。③ Descriptor给出了段的基址，再根据程序中给出的偏移地址得到最终的线性地址。 ④ 访存。
 
@@ -85,7 +85,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   - 编译pmtest1.asm，并将pmtest1.com复制到虚拟软盘pm.img上。
 
-    ```
+    ```bash
     nasm pmtest1.asm -o pmtest1.com
     sudo mount -o loop pm.img /mnt/floppy
     sudo cp pmtest1.com /mnt/floppy
@@ -96,7 +96,7 @@ Ubuntu 14.04；bochs 2.7 .
 
     ![image-20220923100921760](osfs03-1.asset/image-20220923100921760.png)
 
-  ​	可以看到在bochs窗口右侧中出现红色的P，说明程序正确运行。
+  ​可以看到在bochs窗口右侧中出现红色的P，说明程序正确运行。
 
 - 关键步骤解释
 
@@ -104,16 +104,16 @@ Ubuntu 14.04；bochs 2.7 .
 
     相关代码如下。
 
-  ```
+  ```asm
   ; 为加载 GDTR 作准备
-  	xor	eax, eax
-  	mov	ax, ds
-  	shl	eax, 4
-  	add	eax, LABEL_GDT		; eax <- gdt 基地址
-  	mov	dword [GdtPtr + 2], eax	; [GdtPtr + 2] <- gdt 基地址
+  xor	eax, eax
+  mov	ax, ds
+  shl	eax, 4
+  add	eax, LABEL_GDT          ; eax <- gdt 基地址
+  mov	dword [GdtPtr + 2], eax	; [GdtPtr + 2] <- gdt 基地址
   
-  	; 加载 GDTR
-  	lgdt	[GdtPtr]
+  ; 加载 GDTR
+  lgdt [GdtPtr]
   ```
 
   - 关中断&打开地址线A20
@@ -125,9 +125,9 @@ Ubuntu 14.04；bochs 2.7 .
   
     <br/>相关代码如下。
 
-    ```
+    ```asm
     ; 关中断
-    	cli
+    cli
     
     ; 打开地址线A20
     in	al, 92h
@@ -141,7 +141,7 @@ Ubuntu 14.04；bochs 2.7 .
 
     相关代码如下。
 
-    ```
+    ```asm
     ; 准备切换到保护模式
     mov	eax, cr0
     or	eax, 1
@@ -156,9 +156,30 @@ Ubuntu 14.04；bochs 2.7 .
 
   对源程序和修改程序的对应二进制文件进行反汇编，对比如下。
 
-  ![image-20220923111411120](osfs03-1.asset/image-20220923111411120.png)
+  ```diff
+  - 00007C75  66EA000000000800  jmp dword 0x8:0x0
+  - 00007C7D  0000              add [bx+si],al
+  - 00007C7F  0066B8            add [bp-0x48],ah
+  - 00007C82  1000              adc [bx+si],al
+  - 00007C84  8EE8              mov gs,ax
+  - 00007C86  BF7E07            mov di,0x77e
+  - 00007C89  0000              add [bx+si],al
+  - 00007C8B  B40C              mov ah,0xc
+  - 00007C8D  B050              mov al,0x50
+  - 00007C8F  65668907          mov [gs:bx],eax
+  - 00007C93  EBFE              jmp short 0x7c93
+  + 00007C75  EA00000800        jmp 0x8:0x0
+  + 00007C7A  0000              add [bx+si],al
+  + 00007C7C  66B810008EE8      mov eax,0xe88e0010
+  + 00007C82  BF7E07            mov di,0x77e
+  + 00007C85  0000              add [bx+si],al
+  + 00007C87  B40C              mov ah,0xc
+  + 00007C89  B050              mov al,0x50
+  + 00007C8B  65668907          mov [gs:bx],eax
+  + 00007C8F  EBFE              jmp short 0x7c8f
+  ```
 
-​		不加dword时，地址被解释为16位，即word。在该程序中，16位仍然能够完成正确的跳转。但是这个是不严谨的，在其他情形下，当目标跳转范围较大时，只有dword才能实现正确跳转。
+​不加dword时，地址被解释为16位，即word。在该程序中，16位仍然能够完成正确的跳转。但是这个是不严谨的，在其他情形下，当目标跳转范围较大时，只有dword才能实现正确跳转。
 
 ### 代码/b/：GDT的构造与切换，从保护模式切换为实模式
 
@@ -168,7 +189,19 @@ Ubuntu 14.04；bochs 2.7 .
 
   SECTION.gdt中存放GDT的整个结构。首先是对各个Descriptor的定义。
 
-  ![image-20220923153410680](osfs03-1.asset/image-20220923153410680.png)
+  ```asm
+  ; GDT
+  ;                            段基址,          段界限 , 属性
+  LABEL_GDT:         Descriptor    0,                0, 0             ; 空描述符
+  LABEL_DESC_NORMAL: Descriptor    0,           0ffffh, DA_DRW        ; Normal 描述符
+  LABEL_DESC_CODE32: Descriptor    0,   SegCode32Len-1, DA_C+DA_32    ; 非一致代码段, 32
+  LABEL_DESC_CODE16: Descriptor    0,           0ffffh, DA_C          ; 非一致代码段, 16
+  LABEL_DESC_DATA:   Descriptor    0,        DataLen-1, DA_DRW        ; Data
+  LABEL_DESC_STACK:  Descriptor    0,       TopOfStack, DA_DRWA+DA_32 ; Stack, 32 位
+  LABEL_DESC_TEST:   Descriptor 0500000h,       0ffffh, DA_DRW
+  LABEL_DESC_VIDEO:  Descriptor  0B8000h,       0ffffh, DA_DRW        ; 显存首地址
+  ; GDT 结束
+  ```
 
   每个Descriptor遵循如下的定义形式：
 
@@ -180,7 +213,17 @@ Ubuntu 14.04；bochs 2.7 .
 
   然后定义了GdtLen和GdtPtr。最后设置好每一段对应的选择子。
 
-  ![image-20220923153710475](osfs03-1.asset/image-20220923153710475.png)
+  ```asm
+  ; GDT 选择子
+  SelectorNormal		equ	LABEL_DESC_NORMAL	- LABEL_GDT
+  SelectorCode32		equ	LABEL_DESC_CODE32	- LABEL_GDT
+  SelectorCode16		equ	LABEL_DESC_CODE16	- LABEL_GDT
+  SelectorData	    equ	LABEL_DESC_DATA		- LABEL_GDT
+  SelectorStack	    equ	LABEL_DESC_STACK	- LABEL_GDT
+  SelectorTest	    equ	LABEL_DESC_TEST		- LABEL_GDT
+  SelectorVideo	    equ	LABEL_DESC_VIDEO	- LABEL_GDT
+  ;
+  ```
 
 - 保护模式切换为实模式的代码阐述
 
@@ -188,7 +231,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   切换为实模式的代码如下。
 
-  ```
+  ```asm
   ; 16 位代码段. 由 32 位代码段跳入, 跳出后到实模式
   [SECTION .s16code]
   ALIGN	32
@@ -216,13 +259,40 @@ Ubuntu 14.04；bochs 2.7 .
 
   SelectorNormal是一个选择子，它指向Normal描述符。在准备从保护模式切换回实模式前，需要加载一个合适的描述符选择子到有关段寄存器，使得对应段描述符告诉缓冲寄存器包含合适的段界限和属性。Normal描述符就是为了实现这一点。然后将cr0的PE位置为0，最终跳转到REAL_ENTRY段。注意，表面上是jmp 0:LABEL_REAL_ENTRY，但是在程序前面已经对这条指令进行了修改：
 
-  ![image-20220923161116754](osfs03-1.asset/image-20220923161116754.png)
+  ```asm
+  mov	ax, cs
+  mov	ds, ax
+  mov	es, ax
+  mov	ss, ax
+  mov	sp, 0100h
+
+  mov	[LABEL_GO_BACK_TO_REAL+3], ax
+  mov	[SPValueInRealMode], sp
+  ```
 
   所以实际上，这条指令在执行时变成了jmp cs_real_mode:LABEL_REAL_ENTRY。这样就能够正确跳转到目标位置。
 
   LABEL_REAL_ENTRY段的代码如下。主要步骤是：完成关A20，开中断操作，这些与之前从实模式跳转到保护模式的操作是互逆的。最终调用21h中断，返回DOS模式。
 
-  <img src="osfs03-1.asset/image-20220923161245709.png" style="zoom:60%;" />
+  ```asm
+  LABEL_REAL_ENTRY:    ; 从保护模式跳回到实模式就到了这里
+  mov ax, cs
+  mov ds, ax
+  mov es, ax
+  mov ss, ax
+
+  mov sp, [SPValueInRealMode]
+
+  in al, 92h
+  and al, 11111101b    ; 关闭 A20 地址线
+  out 92h, al
+
+  sti; 开中断
+
+  mov ax, 4c00h
+  int 21h              ; 回到 DOS
+  ;
+  ```
 
 - 程序运行
 
@@ -240,17 +310,60 @@ Ubuntu 14.04；bochs 2.7 .
   
   与代码/b/中不同的是，代码/c/中的GDT新增了一个指向LDT的描述符：
 
-  ![1664043718363](osfs03-1.asset/1664043718363.jpg)
+  ```diff
+    ; GDT
+    ;                                         段基址,       段界限     , 属性
+    LABEL_GDT:         Descriptor       0,                 0, 0     	; 空描述符
+    LABEL_DESC_NORMAL: Descriptor       0,            0ffffh, DA_DRW	; Normal 描述符
+    LABEL_DESC_CODE32: Descriptor       0,  SegCode32Len - 1, DA_C + DA_32	; 非一致代码段, 32
+    LABEL_DESC_CODE16: Descriptor       0,            0ffffh, DA_C		; 非一致代码段, 16
+    LABEL_DESC_DATA:   Descriptor       0,       DataLen - 1, DA_DRW+DA_DPL1	; Data
+    LABEL_DESC_STACK:  Descriptor       0,        TopOfStack, DA_DRWA + DA_32; Stack, 32 位
+  + LABEL_DESC_LDT:    Descriptor       0,        LDTLen - 1, DA_LDT	; LDT
+    LABEL_DESC_VIDEO:  Descriptor 0B8000h,            0ffffh, DA_DRW	; 显存首地址
+    ; GDT 结束
+  ```
 
   同时还新增了两个section，分别为LDT和其中选择子指向的代码段：
 
-  ![1664044681937](osfs03-1.asset/1664044681937.jpg)
+  ```asm
+  ; LDT
+  [SECTION .ldt]
+  ALIGN	32
+  LABEL_LDT:
+  ;                            段基址       段界限      属性
+  LABEL_LDT_DESC_CODEA: Descriptor 0, CodeALen - 1, DA_C + DA_32  ; Code, 32 位
 
-  观察发现在LDT的选择子和GDT的结构类似，但是属性中多了一个SA_TIL。查阅pm.inc文件，发现SA_TIL对应的值为4，其作用为将选择子的第2位TI置1（同理还有一个SA_TIG为将TI位置0）。当这一位为1时，系统便会将这个选择子识别为LDT选择子而非GDT选择子，从而在LDT中寻找描述符。
+  LDTLen		equ	$ - LABEL_LDT
+
+  ; LDT 选择子
+  SelectorLDTCodeA	equ	LABEL_LDT_DESC_CODEA	- LABEL_LDT + SA_TIL
+  ; END of [SECTION .ldt]
+
+  ; CodeA (LDT, 32 位代码段)
+  [SECTION .la]
+  ALIGN	32
+  [BITS	32]
+  LABEL_CODE_A:
+  mov	ax, SelectorVideo
+  mov	gs, ax			; 视频段选择子(目的)
+
+  mov	edi, (80 * 12 + 0) * 2	; 屏幕第 10 行, 第 0 列。
+  mov	ah, 0Ch			; 0000: 黑底    1100: 红字
+  mov	al, 'L'
+  mov	[gs:edi], ax
+
+  ; 准备经由16位代码段跳回实模式
+  jmp	SelectorCode16:0
+  CodeALen	equ	$ - LABEL_CODE_A
+  ; END of [SECTION .la]
+  ```
+
+  观察发现在LDT的选择子和GDT的结构类似，但是在LDT选择子的属性中多了一个SA_TIL。查阅pm.inc文件，发现SA_TIL对应的值为4，其作用为将选择子的第2位TI置1（同理还有一个SA_TIG为将TI位置0）。当这一位为1时，系统便会将这个选择子识别为LDT选择子而非GDT选择子，从而在LDT中寻找描述符。  
 
 - 程序运行
 
-  由于代码/c/其余部分与代码/b/并无不同，直接呈现代码运行结果：
+  由于代码/c/其余部分中除了在进保护模式以后用lldt指令加载LDTR以外与代码/b/并无不同，直接呈现代码运行结果：
 
   ![1664048757827](osfs03-1.asset/1664048757827.jpg)
 
