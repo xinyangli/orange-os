@@ -1,4 +1,10 @@
-# <center>武汉大学国家网络安全学院教学实验报告</center>
+---
+CJKmainfont: Source Han Serif CN
+data: 2022.09.26
+documentclass: article
+geometry: margin=3cm
+---
+# 武汉大学国家网络安全学院教学实验报告
 
 |   课程名称   |  操作系统设计与实践  |   实验日期   | 2022.9.24 |
 | :----------: | :------------------: | :----------: | :-------: |
@@ -9,7 +15,7 @@
 |    林锟扬    |    2020302181032     |   信息安全   |     2     |
 |    郑炳捷    |    2020302181024     |   信息安全   |     2     |
 
-## 一、实验目的及实验内容
+## 实验目的及实验内容
 
 ### 实验目的
 
@@ -28,7 +34,7 @@
 5. 调试代码，/d/掌握一致代码段、非一致代码段、数据段的权限访问规则，掌握CPL、DPL、RPL之间关系，以及段间切换的基本方法。
 6. 调试代码，/e/掌握利用调用门进行特权级变换的转移的基本方法。
 
-## 二、实验环境及实验步骤
+## 实验环境及实验步骤
 
 ### 实验环境
 
@@ -51,7 +57,7 @@ Ubuntu 14.04；bochs 2.7 .
   
   - Selector：给出描述符在GDT/LDT的索引号、GDT/LDT标志TI(Table Indicator)以及特权级RPL，当TI=0时表示段描述符在GDT中，当TI=1时表示段描述符在LDT中。
   
-    <img src="osfs03-1.asset/selector.png" alt="Selector" style="zoom: 120%;" />
+    ![Selector结构](osfs03-1.asset/selector.png)
   
   - GDTR寄存器：保存GDT的起始地址和界限。
   
@@ -61,25 +67,25 @@ Ubuntu 14.04；bochs 2.7 .
   
 - GDT寻址过程中的各个数据结构的**关系**：
   
-      ① 先从GDTR寄存器中获得GDT基址。
-      ② 在GDT中根据Selector确定Descriptor。
-      ③ Descriptor给出了段的基址，再根据程序中给出的偏移地址得到最终的线性地址。 
-      ④ 访存。
+  1. 先从GDTR寄存器中获得GDT基址。
+  2. 在GDT中根据Selector确定Descriptor。
+  3. Descriptor给出了段的基址，再根据程序中给出的偏移地址得到最终的线性地址。
+  4. 访存。
 
   ![GDT寻址过程](https://img-blog.csdnimg.cn/img_convert/ed70d022c9583a3a8b7f0b2af97f17ba.png)
 
 - LDT寻址过程中的各个数据结构的**关系**：
   
-      ① 先从GDTR寄存器中获得GDT基址。
-      ② 从LDTR寄存器中获取LDT的索引，并在GDT中找到LDT的描述符从而得到LDT段地址。
-      ③ 从选择子中得到的描述符索引找到目标段的描述符，然后得到最终的线性地址。
-      ④ 访存。
+  1. 先从GDTR寄存器中获得GDT基址。
+  2. 从LDTR寄存器中获取LDT的索引，并在GDT中找到LDT的描述符从而得到LDT段地址。
+  3. 从选择子中得到的描述符索引找到目标段的描述符，然后得到最终的线性地址。
+  4. 访存。
   
   ![LDT寻址过程](osfs03-1.asset/509f7d9a1288b7b91560e1c1add14fe4.jpg)
 
 - GDT与LDT访存方式并没有本质上的区别，只是通过LDT访存要现在GDT中查找该LDT的位置，可以它们之间的关系理解为GDT是“一级描述符表”，LDT是“二级描述符表”。
 
-  <img src="osfs03-1.asset/f6b823309937ba18b98461b0cdf3d3f8.jpg" alt="GDT与LDT的关系" style="zoom: 220%;" />
+  ![GDT与LDT的关系](osfs03-1.asset/f6b823309937ba18b98461b0cdf3d3f8.jpg)
 
 - 调用门的结构
 
@@ -136,7 +142,7 @@ Ubuntu 14.04；bochs 2.7 .
 
     相关代码如下。
 
-  ```x86asm
+  ```asm
   ; 为加载 GDTR 作准备
   xor eax, eax
   mov ax, ds
@@ -156,7 +162,7 @@ Ubuntu 14.04；bochs 2.7 .
   
     相关代码如下。
 
-    ```x86asm
+    ```asm
     ; 关中断
     cli
     
@@ -172,7 +178,7 @@ Ubuntu 14.04；bochs 2.7 .
 
     相关代码如下。
 
-    ```x86asm
+    ```asm
     ; 准备切换到保护模式
     mov eax, cr0
     or  eax, 1
@@ -220,7 +226,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   SECTION.gdt中存放GDT的整个结构。首先是对各个Descriptor的定义。
 
-  ```x86asm
+  ```asm
   ; GDT
   ;                            段基址,          段界限 , 属性
   LABEL_GDT:         Descriptor    0,                0, 0             ; 空描述符
@@ -244,7 +250,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   然后定义了GdtLen和GdtPtr。最后设置好每一段对应的选择子。
 
-  ```x86asm
+  ```asm
   ; GDT 选择子
   SelectorNormal    equ LABEL_DESC_NORMAL - LABEL_GDT
   SelectorCode32    equ LABEL_DESC_CODE32 - LABEL_GDT
@@ -262,7 +268,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   切换为实模式的代码如下。
 
-  ```x86asm
+  ```asm
   ; 16 位代码段. 由 32 位代码段跳入, 跳出后到实模式
   [SECTION .s16code]
   ALIGN 32
@@ -290,7 +296,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   SelectorNormal是一个选择子，它指向Normal描述符。在准备从保护模式切换回实模式前，需要加载一个合适的描述符选择子到有关段寄存器，使得对应段描述符告诉缓冲寄存器包含合适的段界限和属性。Normal描述符就是为了实现这一点。然后将cr0的PE位置为0，最终跳转到REAL_ENTRY段。注意，表面上是jmp 0:LABEL_REAL_ENTRY，但是在程序前面已经对这条指令进行了修改：
 
-  ```x86asm
+  ```asm
   mov ax, cs
   mov ds, ax
   mov es, ax
@@ -305,7 +311,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   LABEL_REAL_ENTRY段的代码如下。主要步骤是：完成关A20，开中断操作，这些与之前从实模式跳转到保护模式的操作是互逆的。最终调用21h中断，返回DOS模式。
 
-  ```x86asm
+  ```asm
   LABEL_REAL_ENTRY:    ; 从保护模式跳回到实模式就到了这里
   mov ax, cs
   mov ds, ax
@@ -357,7 +363,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   同时还新增了两个section，分别为LDT和其中选择子指向的代码段：
 
-  ```x86asm
+  ```asm
   ; LDT
   [SECTION .ldt]
   ALIGN 32
@@ -450,7 +456,7 @@ Ubuntu 14.04；bochs 2.7 .
   
   代码段中的 LABEL_DESC_CODE_DEST，则是被调用段的描述符。DA_C 和 DA_32 两个参数，表示它是个非一致的 32 位代码段。
 
-  ```x86asm
+  ```asm
   [SECTION .gdt]
   ...
   LABEL_DESC_CODE_DEST: Descriptor              0,  SegCodeDestLen-1, DA_C+DA_32; 非一致代码段,32
@@ -465,7 +471,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   接下来是被调用代码段的描述符初始化。类似与前面其它的段描述符初始化。
 
-  ```x86asm
+  ```asm
   [SECTION .s16]
   ...
   ; 初始化测试调用门的代码段描述符
@@ -482,7 +488,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   通过 call 指令，我们可以对门进行调用。由于此处都是 ring 0，满足非一致代码段的权限访问要求，因此直接访问代码段和调用门都是可行的。
 
-  ```x86asm
+  ```asm
   [SECTION .s32]; 32 位代码段. 由实模式跳入.
   ...
   ; 测试调用门（无特权级变换），将打印字母 'C'
@@ -528,7 +534,7 @@ Ubuntu 14.04；bochs 2.7 .
   + SelectorTSS       equ LABEL_DESC_TSS        - LABEL_GDT
   ```
   
-  ```x86asm
+  ```asm
   ; 堆栈段ring3
   [SECTION .s3]
   ALIGN 32
@@ -609,12 +615,12 @@ Ubuntu 14.04；bochs 2.7 .
 
 - ring3下的提权调用流程：跨特权级进行调用不能共享堆栈，防止不同特权级共用数据产生安全风险。
 
-      ①根据目标代码段的DPL（新的CPL）从TSS中提取SS与ESP。
-      ②检验SS、ESP、TSS界限和SS描述符，发生错误时产生异常。
-      ③暂时保存当前SS与ESP，加载新的SS与ESP，然后将刚才临时保存的SS与ESP压入新栈。
-      ④将数据从调用者（旧）的堆栈中复制到被调用者（新）的堆栈中，复制的参数数目由调用门的Param-Count决定。
-      ⑤将CS与EIP压栈并加载调用门中新的CS与EIP。
-      ⑥调用完成，执行被调用过程。
+  1. 根据目标代码段的DPL（新的CPL）从TSS中提取SS与ESP。
+  2. 检验SS、ESP、TSS界限和SS描述符，发生错误时产生异常。
+  3. 暂时保存当前SS与ESP，加载新的SS与ESP，然后将刚才临时保存的SS与ESP压入新栈。
+  4. 将数据从调用者（旧）的堆栈中复制到被调用者（新）的堆栈中，复制的参数数目由调用门的Param-Count决定。
+  5. 将CS与EIP压栈并加载调用门中新的CS与EIP。
+  6. 调用完成，执行被调用过程。
 
 - 如何找到TSS以及TSS的用途
 
@@ -632,11 +638,11 @@ Ubuntu 14.04；bochs 2.7 .
 
   ![代码e运行结果](osfs03-1.asset/1664119558480.jpg)
 
-## 三、实验过程分析与故障记录
+## 实验过程分析与故障记录
 
 - 在对代码/a/进行反汇编时，发现LABEL_SEG_CODE32段的代码与源码有一定的差异。源码中32位代码段如下：
 
-  ```x86asm
+  ```asm
   LABEL_SEG_CODE32:
     mov ax, SelectorVideo
     mov gs, ax                  ; 视频段选择子(目的)
@@ -664,6 +670,23 @@ Ubuntu 14.04；bochs 2.7 .
 
   此时能够与源码对应上。
 
+- 在对/b/进行调试时，我们产生了如下疑问：为什么在跳回实模式之前需要将所有寄存器都赋值为 SelectorNormal？
+
+```asm
+LABEL_SEG_CODE16:
+    ; 跳回实模式:
+    mov ax, SelectorNormal
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+```
+
+  通过查阅[资料](http://www.rcollins.org/ddj/Aug98/Aug98.html)，我们找到了问题的答案：
+
+  每一个段寄存器都有一个专用的缓存，用于存储段寄存器对应的、正在使用的段描述符的值。这些缓存只有在保护模式下改变段寄存器的值时，才会被刷新。所以b中对段寄存器的赋值，用于在切换回实模式之前，将这些缓存中的值设定为“实模式兼容”的值。假如不设为实模式兼容的值，就直接切换回实模式，可能会因为描述符权限问题导致机器直接重置。
+
 - 在尝试将 pmtest1.asm 作为引导程序运行时出现故障：
 
   ![error-1](osfs03-1.asset/error-1.png)
@@ -688,13 +711,34 @@ Ubuntu 14.04；bochs 2.7 .
 
   在 Makefile 中加上一行声明 shell 即可。
 
-  ```makefile
+  ```Makefile
   SHELL=/bin/bash
   ```
+- 在实现动手改2时，发现 pm.inc 中 Gate 宏的实现有一些问题，具体如下：
 
-## 四、实验结果总结
+  ```asm
+  ;
+  ; 门
+  ; usage: Gate Selector, Offset, DCount, Attr
+  ;        Selector:  dw
+  ;        Offset:    dd
+  ;        DCount:    db
+  ;        Attr:      db
+  %macro Gate 4
+    dw (%2 & 0FFFFh)    ; 偏移1
+    dw %1     ; 选择子
+    dw (%3 & 1Fh) | ((%4 << 8) & 0FF00h) ; 属性
+    dw ((%2 >> 16) & 0FFFFh)   ; 偏移2
+  %endmacro ; 共 8 字节
+  ```
 
-### 思考题 1：
+  书上样例在使用宏时，用 + 将不同的属性值合并。但是这样的方法不符合语义，实际上应该使用 | 运算符更为自然。
+
+  然而，书中的宏并未在参数周围添加括号，导致我们在使用 | 运算符时出现了优先级问题。宏定义的第 3 行，`(%4 << 8)`处，使用 | 的话，会变为 `Attr1 | Attr2 << 8`。而位移运算的优先级高于 |，会导致后面的部分先计算，出现错误。
+
+## 实验结果总结
+
+### 思考题 1
 
 > GDT、Descriptor、Selector、GDTR结构，及其含义是什么？他们的关联关系如何？pm.inc所定义的宏怎么使用？
 
@@ -702,13 +746,13 @@ Ubuntu 14.04；bochs 2.7 .
 
   关于宏的使用问题，前面已经分析了足够多的例子（如 Descriptor，Gate 等）。
 
-### 思考题 2：
+### 思考题 2
 
 > 从实模式到保护模式，关键步骤有哪些？为什么要关中断？为什么要打开A20地址线？从保护模式切换回实模式，又需要哪些步骤？
 
   上述问题同样已在实验步骤的分析中做了详细的解读。此处不再赘述。
 
-### 思考题 3：
+### 思考题 3
 
 > 解释不同权限代码的切换原理，call, jmp,retf使用场景如何，能够互换吗？
 
@@ -716,19 +760,60 @@ Ubuntu 14.04；bochs 2.7 .
 
   jmp指令仅仅执行跳转，不会保存当前指令的地址，不考虑调用返回；在段间跳转时，call指令回保存当前的EIP和CS，供后续调用返回使用，当涉及特权级变化时，需要准备好TSS；retf从当前堆栈中取得EIP和CS，从而完成调用返回，当涉及特权级变化，还需要从堆栈中取出ESP和SS，恢复调用者堆栈。
 
-### 动手改 1：
+### 动手改 1
 
 > 自定义添加1个GDT代码段、1个LDT代码段，GDT段内要对一个内存数据结构写入一段字符串，然后LDT段内代码段功能为读取并打印该GDT的内容。
 
-### 动手改 2：
+GDT中含有一个数据段(.DATA)存储全局代码段中写入的信息，尾部有一个字符串“Hello,World!”；一个32位全局代码段（.WRITE），包含了将字符串“Hello,World!”写入数据段的代码；一个 LDT 描述符（.LDT）。
+
+```asm
+LABEL_GDT:
+        Descriptor 0, 0, 0
+    .DATA:
+        Descriptor 0, 0ffffh, DA_DRW
+    .WRITE:
+        Descriptor 0, SegWriteLen - 1, DA_C + DA_32
+    .LDT:
+        Descriptor 0, SegLDTLen - 1, DA_LDT
+```
+
+LDT 描述符所指向的 LDT 包含了一个 32 位代码段，作用是读取并打印写入到数据段开头的字符串。
+
+```asm
+LABEL_LDT:
+.READ:
+    Descriptor 0, SegReadLen - 1, DA_C + DA_32
+```
+
+其中，字符串打印的实现方式参考了 pmtest2.asm。
+
+最终代码运行效果如图：
+
+![ex1.asm 运行截图](osfs03-1.asset/20220926195618.png)
+
+### 动手改 2
 
 > 自定义2个GDT代码段A、B，分属于不同特权级，功能自定义，要求实现A-->B的跳转，以及B-->A的跳转。
 
-### 改进意见：
+代码定义了两个 GDT 段，一个运行于 ring0 (.CPL0)，另一个运行于 ring3 (.CPL3)。因为涉及到特权级变换，所以还需要给 ring0、ring3 各生成一个堆栈段（.STACK .STACK3）以及需要准备 TSS。
+
+代码的基本执行流程为：
+
+1. 从实模式进入保护模式，并跳转到 .CPL0 段，在初始化堆栈和 TSS 后，跳转到 .CPL3 段。
+2. 在 .CPL3 段中，程序向屏幕上打印了一个 '3'，然后使用调用门 SelectorCallGateTest 提升特权级，跳转回 .CPL0 段中 .1 标签的位置。
+3. 在 .1 标签处，会将 '0' 字符写入 ax 寄存器，跳转回 .CPL3 段。回到 .CPL3 后，输出 ax 寄存器中的内容。
+
+最终代码运行效果如图：
+
+![ex2.asm 运行截图](osfs03-1.asset/20220926202439.png)  
+
+代码的原理与 e/pmtest5c.asm 相似，在此不再赘述。
+
+### 改进意见
 
   - 我们查阅了官方文档。认为可以将繁琐的描述符初始化定义成宏，使代码更简洁、可读。同时，Magic Break 的语句也可写成宏，方便调试的进行。
 
-    ```x86asm
+    ```asm
     ; Usage: InitSeg label_gdt, label_seg
     ; Initilize base address of a segment descriptor in the GDT
     ;
@@ -752,20 +837,6 @@ Ubuntu 14.04；bochs 2.7 .
         xchg bx, bx
         %endif
     %endmacro
-    ```++
-
-  - 随书源码在定义描述符的属性时，使用了粗暴的将值加起来的写法。
-
-    像这样的：
-
-    ```x86asm
-    LABEL_DESC_STACK3:     Descriptor 0,       TopOfStack3, DA_DRWA + DA_32 + DA_DPL3
-    ```
-
-    虽然属性的表示位确实是彼此不同的，但我们认为这样的写法不够严谨。更准确合适的写法应该是：
-
-    ```x86asm
-    LABEL_DESC_STACK3:     Descriptor 0,       TopOfStack3, DA_DRWA | DA_32 | DA_DPL3
     ```
 
   - `mount -o loop ...` 指令使用了 loop device 这一伪设备，因此每次都需要 sudo 权限。
@@ -774,51 +845,10 @@ Ubuntu 14.04；bochs 2.7 .
 
     这样在调试和 make 的时候就可以少输入几次密码了。
 
-## 五、实验分工与心得体会
+## 实验分工与心得体会
 
 通过本次实验，我们对保护模式有更加深入全面的理解，包括保护模式的相关数据结构及实现方式、实模式和保护模式的切换、保护模式下的特权级机制等内容。在阅读代码时，需要关注实模式和保护模式的寻址方式，并且在编写代码时处理好这些细节。当程序变得复杂时，要运用好GDT/LDT的段式管理，对每一个进程设置好对应的LDT。另外，在动手改环节，也对不同段的权限进行了一定的探究，理解了保护模式下如何运用权限机制来实现“保护”，并且掌握特权级变换的方式。
 
 本次实验分工大致如下：李心杨主要负责实现动手改1和2，提出和解决bug及问题；王宇骥主要调试代码/a/和/b/，对模式切换和GDT构造的代码原理进行总结；林锟扬主要调试代码/d/，对段的权限访问规则进行总结；郑炳捷调试代码/c/和/e/，对调用门相关原理进行梳理和总结，负责完善调整实验报告的格式。
 
-
-## 六、教师评价
-
-<table>
-    <tr>
-        <td colspan="3"> 教师评语 </td>
-    </tr>
-    <tr>
-        <td colspan="3"> </br></br></br> </td>
-    </tr>
-    <tr align="center">
-        <td colspan="3"> 教师评分</td>
-    </tr>
-	<tr align="center">
-        <td>姓名</td>
-        <td>学号</td>
-        <td>分数</td>
-    </tr>
-    <tr align="center">
-        <td>李心杨</td>
-        <td>2020302181022</td>
-        <td></td>
-    </tr>
-    <tr align="center">
-        <td>王宇骥</td>
-        <td>2020302181008</td>
-        <td></td>
-    </tr>
-    <tr align="center">
-        <td>林锟扬</td>
-        <td>2020302181032</td>
-        <td></td>
-    </tr>
-    <tr align="center">
-        <td>郑炳捷</td>
-        <td>2020302181024</td>
-        <td></td>
-    </tr>
-	<tr>
-        <td colspan="3">教师签名 </br> </br> </td>
-	</tr>
-
+## 教师评价
