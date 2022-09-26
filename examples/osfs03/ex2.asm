@@ -23,7 +23,7 @@ LABEL_GDT:
 
 ; Gates
     .G_PROMOTE:
-        Gate SelectorCPL0, 0, 0, DA_386CGate | DA_DPL3
+        Gate SelectorCPL0, OffsetCPL0_1, 0, DA_386CGate | DA_DPL3
 
 GdtLen equ $ - LABEL_GDT
 GdtPtr dw GdtLen - 1
@@ -31,7 +31,7 @@ GdtPtr dw GdtLen - 1
 ; END of [SECTION .gdt]
 
 ; GDT Selectors
-SelectorCPL0 equ LABEL_GDT.CPL0 - LABEL_GDT
+SelectorCPL0 equ LABEL_GDT.CPL0 - LABEL_GDT 
 SelectorCPL3 equ (LABEL_GDT.CPL3 - LABEL_GDT) | SA_RPL3
 SelectorStack equ LABEL_GDT.STACK - LABEL_GDT
 SelectorStack3 equ (LABEL_GDT.STACK3 - LABEL_GDT) | SA_RPL3
@@ -178,14 +178,16 @@ LABEL_SEG_CPL3:
     mov edi, (80 * 12 + 0) * 2; 12th line, 0th column
     mov ah, 0ch
     mov al, '3'
-    mov [gs:edi], ax
+    mov [gs:edi], ax 
 
     DebugBreak
     ; Call cpl0 through gate
     call SelectorCallGateTest:0
     
+    DebugBreak
     ; Print ax to screen
     add edi, 2
+    mov ah, 0ch
     mov [gs:edi], ax
 
     jmp $

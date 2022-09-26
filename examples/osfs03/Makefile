@@ -1,5 +1,5 @@
 INCLUDE := .
-BIN := ex1.com
+BIN := ex1.com ex2.com
 ASMFLAGS := $(patsubst %, -I%, $(INCLUDE)) $(ASMFLAGS)
 all: $(BIN) a.img
 
@@ -15,6 +15,7 @@ cpfile: $(BIN) a.img
 
 .PHONY: clean bochs qemu debug
 
+# TODO: Subsitute mkfs.fat with virt-virt to avoid using root
 a.img:
 	bximage -func=create -fd=1.44M -q a.img
 	mkfs.fat a.img
