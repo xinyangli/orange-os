@@ -53,7 +53,7 @@ LABEL_BEGIN:
 
         lgdt [GdtPtr]
 
-        cli 
+        cli
 
         ; Enable A20
         in al, 92h
@@ -81,5 +81,3 @@ LABEL_SEG_CODE32:
 
 SegCode32Len equ $ - LABEL_SEG_CODE32
 ; END of [SECTION .s32]
-
-times $ - $$ db 0

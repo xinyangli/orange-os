@@ -1,8 +1,9 @@
+INCLUDE := $(patsubst %, -I%, ../)
 BIN := pmtest1.bin
 all: $(BIN) a.img
 
 $(BIN):%.bin: %.asm
-	nasm $< -o $@
+	nasm $(INCLUDE) $< -o $@
 	
 a.img: $(BIN)
 	bximage -func=create -fd=1.44M -q a.img
@@ -19,7 +20,7 @@ qemu: a.img
 
 debug: a.img
 	qemu-system-x86_64 -s -S -drive file=a.img,format=raw,id=fd0 -boot a &
-	gdb -ex "target remote localhost:1234" -ex "symbol $(BIN)"
+	gdb -ex "target remote localhost:1234" pmtest1b.bin
 
 clean:
 	-rm a.img $(BIN)
