@@ -90,7 +90,7 @@ clean:
 
 #### 1. 运行示例代码
 
-![boot1](osfs01.asset/20220915000531.png)
+![boot1](week1.asset/20220915000531.png)
 
 #### 2. 修改代码，打印自己的名字
 
@@ -119,7 +119,7 @@ BootMessage:
 
 其中，第 7 行的 18 表示需要输出的字符串共有 18 个字符。修改后，重新 make，即可看到屏幕上的文字变为 "Hello, Xinyang Li!"
 
-![print-name](osfs01.asset/20220915004904.png)
+![print-name](week1.asset/20220915004904.png)
 
 #### 3. 对生成的文件反汇编
 
@@ -146,7 +146,7 @@ BootMessage:
 
 使用 bochs 进行调试
 
-![debug](osfs01.asset/20220915094436.png)
+![debug](week1.asset/20220915094436.png)
 
 发现程序的确被 BIOS 加载到了 0x7c00 的位置。
 
@@ -231,4 +231,4 @@ BIOS 在启动过程中向中断向量表中写入了一部分中断处理程序
 
 2. 在循环中每次调用系统中断之前，修改 DH 寄存器的值，即能实现多行打印的效果。
 
-![multiline](osfs01.asset/20220915172735.png)  
+![multiline](week1.asset/20220915172735.png)  

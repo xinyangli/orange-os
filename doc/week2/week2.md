@@ -57,11 +57,11 @@ Ubuntu 14.04；bochs 2.7 .
   
   - Selector：给出描述符在GDT/LDT的索引号、GDT/LDT标志TI(Table Indicator)以及特权级RPL，当TI=0时表示段描述符在GDT中，当TI=1时表示段描述符在LDT中。
   
-    ![Selector结构](osfs03-1.asset/selector.png)
+    ![Selector结构](week2.asset/selector.png)
   
   - GDTR寄存器：保存GDT的起始地址和界限。
   
-     ![GDTR结构](osfs03-1.asset/GDTR.png)
+     ![GDTR结构](week2.asset/GDTR.png)
 
   - LDTR寄存器：由一个可见的16位选择子和不可见的存着描述符的基址和限长的由CPU维护的高速缓冲（会随时变化）组成。
   
@@ -81,39 +81,39 @@ Ubuntu 14.04；bochs 2.7 .
   3. 从选择子中得到的描述符索引找到目标段的描述符，然后得到最终的线性地址。
   4. 访存。
   
-  ![LDT寻址过程](osfs03-1.asset/509f7d9a1288b7b91560e1c1add14fe4.jpg)
+  ![LDT寻址过程](week2.asset/509f7d9a1288b7b91560e1c1add14fe4.jpg)
 
 - GDT与LDT访存方式并没有本质上的区别，只是通过LDT访存要现在GDT中查找该LDT的位置，可以它们之间的关系理解为GDT是“一级描述符表”，LDT是“二级描述符表”。
 
-  ![GDT与LDT的关系](osfs03-1.asset/f6b823309937ba18b98461b0cdf3d3f8.jpg)
+  ![GDT与LDT的关系](week2.asset/f6b823309937ba18b98461b0cdf3d3f8.jpg)
 
 - 调用门的结构
 
   调用门的结构如下图所示，如果选择子指向的描述符的DPL小于当前CPL则会发生提权，高32位中的低5位是调用调用门需要的参数数目。调用门的高16位和低16位为新的EIP。
 
-  ![调用门结构](osfs03-1.asset/call-gate.png)
+  ![调用门结构](week2.asset/call-gate.png)
 
 - 使用call指令调用的不同情况
 
   - 短调用：call 立即数/寄存器/地址，调用后只有ESP与EIP发生变化（原EIP被压栈）。
 
-    ![短调用](osfs03-1.asset/short.png)
+    ![短调用](week2.asset/short.png)
 
   - 长调用：call cs:eip，CS指向调用门的选择子。
   
     - 不提权：旧的CS与EIP被压栈。
 
-      ![长调用不提权](osfs03-1.asset/long1.png)
+      ![长调用不提权](week2.asset/long1.png)
 
     - 提权：与不提权相比，栈段也会发生改变，具体过程将在代码/e/部分展开。
 
-      ![长调用提权](osfs03-1.asset/long2.png)
+      ![长调用提权](week2.asset/long2.png)
 
 ### 代码/a/：从实模式到保护模式
 
 - 代码流程图
 
-  ![从实模式到保护模式的流程图](osfs03-1.asset/exp2.png)
+  ![从实模式到保护模式的流程图](week2.asset/exp2.png)
 
 - 运行源码程序
 
@@ -132,7 +132,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   - 在FreeDos中运行程序。
 
-    ![代码a的运行结果](osfs03-1.asset/image-20220923100921760.png)
+    ![代码a的运行结果](week2.asset/image-20220923100921760.png)
 
   ​可以看到在bochs窗口右侧中出现红色的P，说明程序正确运行。
 
@@ -189,7 +189,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   将源代码中jmp dword SelectorCode32:0一句中的dword删除，重新编译并运行。结果发现程序仍然能够正常运行，窗口中仍然能够显示p。
 
-  ![删除dword后的代码a的运行结果](osfs03-1.asset/image-20220923111144854.png)
+  ![删除dword后的代码a的运行结果](week2.asset/image-20220923111144854.png)
 
   对源程序和修改程序的对应二进制文件进行反汇编，对比如下。
 
@@ -335,7 +335,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   对asm文件编译，并拷贝到磁盘中。在DOS模式中运行该程序。结果如下图：
 
-  ![代码b运行结果](osfs03-1.asset/image-20220923161703295.png)
+  ![代码b运行结果](week2.asset/image-20220923161703295.png)
 
   程序运行正确，最终程序运行完毕后，又回到了实模式下的DOS。
 
@@ -402,7 +402,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   由于代码/c/其余部分中除了在进保护模式以后用lldt指令加载LDTR以外与代码/b/并无不同，直接呈现代码运行结果：
 
-  ![代码c运行结果](osfs03-1.asset/1664048757827.jpg)
+  ![代码c运行结果](week2.asset/1664048757827.jpg)
 
   可以看到成功打印了保护模式中的字符串和LDT中的字母"L"，结果符合预期。
 
@@ -514,7 +514,7 @@ Ubuntu 14.04；bochs 2.7 .
 
   该代码段会在屏幕第 12 行第 0 列显示一个字母 C。它的运行结果如下，符合我们的预期：
 
-  ![该代码段的运行结果](osfs03-1.asset/debug-d.png)
+  ![该代码段的运行结果](week2.asset/debug-d.png)
 
   后续代码与代码/c/类似，通过LDT打印一个字符L，最后结果符合预期。
 
@@ -611,7 +611,7 @@ Ubuntu 14.04；bochs 2.7 .
   ; TSS 
   ```
 
-  ![TSS结构图](osfs03-1.asset/tss.jpg)
+  ![TSS结构图](week2.asset/tss.jpg)
 
 - ring3下的提权调用流程：跨特权级进行调用不能共享堆栈，防止不同特权级共用数据产生安全风险。
 
@@ -628,15 +628,15 @@ Ubuntu 14.04；bochs 2.7 .
 
   TR寄存器结构和利用TSS调用或跳转流程如下图：
 
-  ![TR寄存器](osfs03-1.asset/tr.png)
+  ![TR寄存器](week2.asset/tr.png)
 
-  ![流程图](osfs03-1.asset/1.jpg)
+  ![流程图](week2.asset/1.jpg)
 
 - 程序运行
 
   打印出了字符“3”说明成功进入ring3，打印出了“C”说明在ring3下的提权调用成功了，重新回到ring0，实验结果符合预期。
 
-  ![代码e运行结果](osfs03-1.asset/1664119558480.jpg)
+  ![代码e运行结果](week2.asset/1664119558480.jpg)
 
 ## 实验过程分析与故障记录
 
@@ -658,15 +658,15 @@ Ubuntu 14.04；bochs 2.7 .
 
   反汇编后：
 
-  ![16位反汇编代码](osfs03-1.asset/image-20220923151238759.png)
+  ![16位反汇编代码](week2.asset/image-20220923151238759.png)
 
   在 bochs 中进行调试对比，我们不难发现，反汇编程序把对齐用的三个字节的 0 当成了指令。
 
-  ![调试对比反汇编代码](osfs03-1.asset/diff-ndisasm.png)
+  ![调试对比反汇编代码](week2.asset/diff-ndisasm.png)
 
   我们联想到是反汇编默认采用的是16位反汇编。于是修改ndisasm的参数，令其以32位进行反汇编。结果如下：
 
-  ![32位反汇编代码](osfs03-1.asset/image-20220923151828913.png)
+  ![32位反汇编代码](week2.asset/image-20220923151828913.png)
 
   此时能够与源码对应上。
 
@@ -689,7 +689,7 @@ LABEL_SEG_CODE16:
 
 - 在尝试将 pmtest1.asm 作为引导程序运行时出现故障：
 
-  ![error-1](osfs03-1.asset/error-1.png)
+  ![error-1](week2.asset/error-1.png)
 
   原因是 pmtest1.asm 与实验一的代码不同，它不包含填充到 510 字节和写入 0xaa55 的部分。而且由于它有很多的 section，直接使用 `times 510-($-$$)` 是不行的，因为 \$\$ 针对的是当前段。
 
@@ -703,7 +703,7 @@ LABEL_SEG_CODE16:
 
   这样做直接在 bash 或 zsh 下运行时是可行的。但当我们将其写入 makefile 文件中后，却发现无法正常写入：
 
-  ![error-2](osfs03-1.asset/error-2.png)
+  ![error-2](week2.asset/error-2.png)
 
   它写入了莫名其妙的 0x6e2d。
 
@@ -789,7 +789,7 @@ LABEL_LDT:
 
 最终代码运行效果如图：
 
-![ex1.asm 运行截图](osfs03-1.asset/20220926195618.png)
+![ex1.asm 运行截图](week2.asset/20220926195618.png)
 
 ### 动手改 2
 
@@ -805,7 +805,7 @@ LABEL_LDT:
 
 最终代码运行效果如图：
 
-![ex2.asm 运行截图](osfs03-1.asset/20220926202439.png)  
+![ex2.asm 运行截图](week2.asset/20220926202439.png)  
 
 代码的原理与 e/pmtest5c.asm 相似，在此不再赘述。
 
