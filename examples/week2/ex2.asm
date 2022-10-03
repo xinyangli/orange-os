@@ -27,7 +27,7 @@ LABEL_GDT:
 
 GdtLen equ $ - LABEL_GDT
 GdtPtr dw GdtLen - 1
-       dw LABEL_GDT
+       dd 0
 ; END of [SECTION .gdt]
 
 ; GDT Selectors
