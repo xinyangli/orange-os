@@ -35,7 +35,7 @@ LABEL_BEGIN:
     ; 保存原中断向量 60:d0d6
     ; 但是我并不知道怎么用这个东西来 jmp far
     mov eax, dword [es:36]
-    mov [es:200], eax
+    mov [es:200h], eax
     ; 修改 9 号中断的中断向量
     mov word [es:36], 204h
     mov word [es:38], 0
@@ -59,7 +59,10 @@ _int9:
     pop gs
     pop ax
     ; 由原本的中断程序接管
-    jmp dword 60h:0d0d6h
+    ; jmp dword 60h:0d0d6h
+    push word [cs:202h]
+    push word [cs:200h]
+    retf
 
 _int9end:
     nop
