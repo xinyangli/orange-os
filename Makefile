@@ -1,13 +1,17 @@
-export INCLUDE := include
+export BOOTBLOCK_TARGET := dbr.img
+export BOOTLOADER_TARGET := loader.bin
 export KERNEL_TARGET := okernel
 
-all: $(KERNEL_TARGET)
+export AS := nasm
 
-$(KERNEL_TARGET): src/Makefile
+export INCLUDE := include
+export CFLAGS += --std=c11 -m32 -nostdinc
+
+all:
 	$(MAKE) -C src
 
 .phony: $(SUBDIR) clean
 
 clean:
 	$(MAKE) -C src clean
-	$(RM) $(KERNEL_TARGET)
+	$(RM) $(KERNEL_TARGET) $(BOOTBLOCK_TARGET) $(BOOTBLOCK_TARGET)
