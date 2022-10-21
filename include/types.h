@@ -11,4 +11,11 @@ typedef struct {
   int size; /* size of bitmap array */
 } free_area_t;
 
-#endif //ORANGE_OS_MM_TYPES
+typedef unsigned int u32;
+typedef unsigned short u16;
+typedef unsigned char u8;
+typedef int i32;
+typedef short i16;
+typedef char i8;
+
+#endif //ORANGE_OS_MM_TY  

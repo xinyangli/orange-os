@@ -10,7 +10,7 @@ export CFLAGS += --std=c11 -m32 -nostdinc
 all:
 	$(MAKE) -C src
 
-.phony: $(SUBDIR) clean
+.phony: clean
 
 clean:
 	$(MAKE) -C src clean
