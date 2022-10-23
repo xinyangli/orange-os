@@ -4,8 +4,8 @@ extern PtDisp
 global _start
 
 [SECTION .bss]
-StackSpace resb 2*1024
-StackTop:
+    StackSpace resb 2*1024
+    StackTop:
 
 [SECTION .text]
 _start:

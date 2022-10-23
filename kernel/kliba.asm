@@ -1,3 +1,13 @@
+global DispStr
+global DispColStr
+global out_byte
+global memset
+global memcpy
+global in_byte
+global gain_gdt
+global apply_gdt
+global apply_idt
+
 [SECTION .text]
 
 extern PtDisp
@@ -6,7 +16,6 @@ extern PtDisp
 ; 显示字符串
 ; void DispStr(char *s)
 
-global DispStr
 
 DispStr:
 
@@ -57,7 +66,6 @@ DispStr:
 ; 显示指定颜色的字符串
 ; void DispColStr(char *s, u8 col)
 
-global DispColStr
 
 DispColStr:
 
@@ -109,8 +117,6 @@ DispColStr:
 ; 往端口传输数据
 ; void out_byte(u16 port, u8 data)
 
-global out_byte
-
 out_byte:
     push ebp
     mov ebp, esp
@@ -126,7 +132,6 @@ out_byte:
 ; 从端口读入数据
 ; u8 in_byte(u16 port)
 
-global in_byte
 
 in_byte:
     push ebp
@@ -141,7 +146,6 @@ in_byte:
 ; 内存复制
 ; void* memcpy(void *dst, void *src, size_t siz)
 
-global memcpy
 
 memcpy:
     push ebp
@@ -172,7 +176,6 @@ memcpy:
 ; 内存覆盖
 ; void* memset(void *dst, u8 val, size_t siz)
 
-global memset
 
 memset:
     push ebp
@@ -204,10 +207,6 @@ SELECTOR_KERNEL_CS equ 8
 
 extern gdt_ptr
 extern idt_ptr
-
-global gain_gdt
-global apply_gdt
-global apply_idt
 
 ; 将当前 gdt 的信息加载到 gdt_ptr
 ; void gain_gdt()
