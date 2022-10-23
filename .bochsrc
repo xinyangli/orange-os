@@ -24,7 +24,7 @@ boot: floppy
 mouse: enabled=0
 
 # enable keyboard mapping
-keyboard: keymap=/usr/local/share/bochs/keymaps/sdl2-pc-us.map
+# keyboard: keymap=/usr/local/share/bochs/keymaps/sdl2-pc-us.map
 
 # break when encounter `xchg bx, bx`
 magic_break: enabled=1

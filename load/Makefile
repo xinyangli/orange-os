@@ -1,8 +1,8 @@
 INCLUDE := $(addprefix ../, $(INCLUDE))
 BOOTBLOCK_TARGET := $(addprefix ../, $(BOOTBLOCK_TARGET))
 BOOTLOADER_TARGET := $(addprefix ../, $(BOOTLOADER_TARGET))
+ASFLAGS := 
 CFLAGS += $(patsubst %, -I%, $(INCLUDE))
-ASFLAGS += $(patsubst %, -I%, $(INCLUDE))
 BINBOOT = boot.bin
 BINLOADER = loader.bin
 
