@@ -72,3 +72,10 @@ bin/
 # Tex and pandoc
 *.pdf
 *.aux
+
+# Clangd
+.cache
+compile_commands.json
+
+# build result
+okernel

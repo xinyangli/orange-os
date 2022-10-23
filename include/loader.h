@@ -1,3 +1,5 @@
+#ifndef ORANGE_OS_LOADER_H
+#define ORANGE_OS_LOADER_H
 #include "types.h"
 typedef struct fat_superblock_t {
     u16 size_per_sector;
@@ -20,3 +22,4 @@ typedef struct fat_entry_t {
     };
     u32 size; /* 文件大小 */
 } fat_entry_t;
+#endif // ORANGE_OS_LOADER_H

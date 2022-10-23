@@ -1,32 +1,22 @@
 INCLUDE := $(addprefix ../, $(INCLUDE))
 KERNEL_TARGET := $(addprefix ../, $(KERNEL_TARGET))
-BOOTBLOCK_TARGET := $(addprefix ../, $(BOOTBLOCK_TARGET))
-BOOTLOADER_TARGET := $(addprefix ../, $(BOOTLOADER_TARGET))
-CFLAGS += $(patsubst %, -I%, $(INCLUDE)) -nostdlib -m32
+CFLAGS += $(patsubst %, -I%, $(INCLUDE))
 ASFLAGS += $(patsubst %, -I%, $(INCLUDE))
-OBJ = page_alloc.o
-BINBOOT = boot.bin
-BINLOADER = loader.bin
+ASM := kernel.o handlera.o kliba.o
+OBJ := page_alloc.o start.o handler.o klib.o
 
-all: kernel $(BINLOADER) $(BINBOOT)
+all: kernel
 
 kernel: $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -emain -o $(KERNEL_TARGET)
+	$(CC) $(CFLAGS) $(OBJ) $(ASM) -Ttext 0x30000 -o $(KERNEL_TARGET)
 
-$(BINBOOT): boot.asm
-	$(AS) $(ASFLAGS) $< -o $@
-	cp $(BINBOOT) $(BOOTBLOCK_TARGET)
-
-$(BINLOADER): loader.asm loader.c loader.ld
-	$(CC) $(CFLAGS) -c loader.c -o loaderc.o
-	$(AS) $(ASFLAGS) -f elf $(BINLOADER:%.bin=%.asm) -o loader.o
-	$(LD) -T loader.ld loader.o loaderc.o -o loader.bin
-	cp $(BINLOADER) $(BOOTLOADER_TARGET)
-
-$(OBJ):%.o: %.c
+$(OBJ):%.o: %.c $(ASM)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+$(ASM):%.o: %.asm
+	$(AS) $(ASFLAGS) -f elf $< -o $@
 
 .phony: clean
 
 clean:
-	$(RM) $(OBJ) $(BINBOOT) $(BINLOADER) *.o
+	$(RM) $(OBJ) *.o
