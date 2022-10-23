@@ -11,6 +11,10 @@ export CFLAGS += --std=c11 -m32 -nostdinc -O2 -mno-sse
 all:
 	$(MAKE) -C src
 
+bochs: all .bochsrc
+	scripts/mkfd.sh
+	bochs -q
+
 .phony: clean
 
 clean:

@@ -14,8 +14,12 @@ mkdir -p .mnt
 sudo mount -t msdos -o loop $TARGET_IMG .mnt
 sudo cp $BINLOADER .mnt/LOADER.BIN
 sudo umount .mnt
-rmdir .mnt
 
 rm -f $DISK_IMG
 bximage -func=create -hd=10M -imgmode=flat -sectsize=512 -q $DISK_IMG
 sudo mkfs.fat -F32 $DISK_IMG
+sudo mount -o loop $DISK_IMG .mnt
+sudo cp okernel .mnt/OKERNEL
+
+sudo umount .mnt
+rmdir .mnt

@@ -1,26 +1,49 @@
 #include "asm.h"
 #include "loader.h"
 #include "klib.h"
+#include "elf.h"
 
 #define SECTSIZE 512
 #define CLUSSIZE 4096
 static fat_superblock_t fat_superblock;
 static u8 img_buf[CLUSSIZE], fat_buf[SECTSIZE];
 static int fat_sector = 0; /* fat_buf中保存的fat表为fat的第fat_sector扇区 */
-static int fat_offset, data_offset;
+static int fat_offset, data_sector;
 
-void read_sect(void *dst, u32 offset, int cnt);
-void load_dbr();
-void load_kernel(u32 start_clus, void *kernel_addr);
+static void read_sect(void *dst, u32 offset, int cnt);
+static u32 next_clus(u32 clus);
+static void load_dbr();
+static void load_kernel(u32 start_clus, void *kernel_addr);
 
-__attribute__((noreturn)) int main() {
+__attribute__((noreturn)) void main() {
     char s[] = {'Y', 0xF, 'e', 0xF, 's', 0xF};
     char buf[18] = {0};
     fat_superblock_t *sb = &fat_superblock;
+    struct elfhdr *elf;
+    void (*entry)(void) = NULL;
     __builtin_memcpy((void *)0xB8000, s, 6);
     load_dbr();
-    itohstr(data_offset, buf);
+    itohstr(data_sector, buf);
     __builtin_memcpy((void *)0xB8010, buf, 18);
+
+    /* Parse root cluster */
+    u32 clus = sb->root_clus;
+    do {
+        read_sect(img_buf, data_sector + clus * sb->sectors_per_cluster,
+                  sb->sectors_per_cluster);
+        for (u8 *p_buf = img_buf; p_buf < img_buf + CLUSSIZE; p_buf += 0x20) {
+            if (strncmp("OKERNEL     ", (char *)p_buf, 12) == 0) {
+                u32 start_clus =
+                    *(u16 *)(p_buf + 0x14) << 16 | *(u16 *)(p_buf + 0x1A);
+                load_kernel(start_clus, (void *)0x100000);
+                /* Jump to kernel */
+                
+            }
+        }
+        clus = next_clus(clus);
+    } while ((clus & 0x0FFFFFFFu) >= 0x0FFFFFF8u);
+    while (1)
+        ;
 }
 
 void wait_disk(void) {
@@ -30,7 +53,7 @@ void wait_disk(void) {
 }
 
 // Read a single sector at offset into dst.
-void read_sect(void *dst, u32 offset, int cnt) {
+static void read_sect(void *dst, u32 offset, int cnt) {
     // Issue command.
     outb(0x1F2, cnt); // count = 1
     outb(0x1F3, offset);
@@ -42,9 +65,10 @@ void read_sect(void *dst, u32 offset, int cnt) {
     // Read data.
     wait_disk();
     insl(0x1F0, dst, SECTSIZE / 4);
+    BOCHS_BREAK();
 }
 
-void load_dbr() {
+static void load_dbr() {
     fat_superblock_t *sb = &fat_superblock;
     read_sect(img_buf, 0, 1);
     sb->size_per_sector = *(u16 *)(img_buf + 0x0B);
@@ -55,34 +79,36 @@ void load_dbr() {
     sb->sectors_per_FAT = *(u32 *)(img_buf + 0x24);
     sb->root_clus = *(u32 *)(img_buf + 0x2C);
     fat_offset = sb->reserved_sectors_num * sb->size_per_sector;
-    data_offset =
-        fat_offset + (sb->FATs_num * sb->sectors_per_FAT -
-                      2 * sb->sectors_per_cluster) * /* 簇编号从2开始 */
-                         sb->size_per_sector;
+    data_sector = sb->reserved_sectors_num +
+                  (sb->FATs_num * sb->sectors_per_FAT -
+                   2 * sb->sectors_per_cluster); /* 簇编号从2开始 */
 }
 
-inline void read_clus(u32 cluster, u8 *buf) {
+static inline void read_clus(u32 cluster, u8 *buf) {
     fat_superblock_t *sb = &fat_superblock;
-    u32 cluster_size = sb->sectors_per_cluster * sb->size_per_sector;
-    read_sect(buf, data_offset + cluster * cluster_size,
+    read_sect(buf, data_sector + cluster * sb->sectors_per_cluster,
               sb->sectors_per_cluster);
 }
 
-inline u32 next_clus(u32 cluster) {
+static inline u32 next_clus(u32 cluster) {
     u32 nxt = 0x0FFFFFFFU;
+    fat_superblock_t *sb = &fat_superblock;
     if (fat_sector != cluster / (SECTSIZE / 4)) {
-        read_sect(fat_buf, fat_offset + cluster, 1);
         fat_sector = cluster / (SECTSIZE / 4);
+        read_sect(
+            fat_buf,
+            sb->reserved_sectors_num + fat_sector * sb->sectors_per_cluster, 1);
     }
-    nxt = fat_buf[fat_offset % (SECTSIZE / 4)];
+    nxt = *(u32 *)(fat_buf + fat_offset % (SECTSIZE / 4));
     return nxt;
 }
 
-void load_kernel(u32 start_clus, void *kernel_addr) {
+static void load_kernel(u32 start_clus, void *kernel_addr) {
     u32 clus = start_clus;
     do {
-        read_sect(kernel_addr, data_offset + start_clus * CLUSSIZE,
-                fat_superblock.sectors_per_cluster);
+        read_sect(img_buf,
+                  data_sector + clus * fat_superblock.sectors_per_cluster,
+                  fat_superblock.sectors_per_cluster);
         kernel_addr += CLUSSIZE;
         clus = next_clus(clus);
     } while ((clus & 0x0FFFFFFFu) >= 0x0FFFFFF8u);
