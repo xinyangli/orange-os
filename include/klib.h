@@ -1,0 +1,18 @@
+#ifndef ORANGE_OS_KLIB_H_
+#define ORANGE_OS_KLIB_H_
+
+#include "global.h"
+
+void DispStr(char *s);
+void DispColStr(char *s, u8 col);
+void out_byte(u16 port, u8 byte);
+void in_byte(u16 port);
+void* memcpy(void *dst, void *src, size_t siz);
+void* memset(void *dst, u8 val, size_t siz);
+int set_Ptdisp(int pos);
+int disp_clear();
+void gain_gdt();
+void apply_gdt();
+void apply_idt();
+
+#endif //ORANGE_OS_KLIB_H_

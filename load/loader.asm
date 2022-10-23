@@ -1,8 +1,10 @@
 global start
 extern main, dataseg
+
 %include "pm.inc"
 %include "utils.inc"
-section .text
+
+[SECTION .text]
 start:
 [BITS 16]
         cli
@@ -40,6 +42,9 @@ start32:
         mov ds, ax
         mov es, ax
 
+        mov ax, SelectorVideo
+        mov gs, ax
+
         ; 初始化栈
         mov esp, start
 
@@ -49,15 +54,18 @@ start32:
         BOCHS_BREAK
         hlt
 
-section .data
+[SECTION .data]
 align 32
 ; TODO: 确保GDT是对齐的
 gdt:
 .null:  Descriptor 0, 0, 0
 .text:  Descriptor 0, 0xFFFFF, DA_CR | DA_32 | DA_LIMIT_4K
 .data:  Descriptor 0, 0xFFFFF, DA_DRW | DA_32 | DA_LIMIT_4K
+.video: Descriptor 0B8000h, 0ffffh, DA_DRW
+
 .ptr:   dw $ - gdt - 1
         dd gdt
 
 SelectorText equ gdt.text - gdt
 SelectorData equ gdt.data - gdt
+SelectorVideo equ gdt.video - gdt

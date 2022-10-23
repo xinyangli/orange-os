@@ -5,7 +5,7 @@ export KERNEL_TARGET := okernel
 export AS := nasm
 
 export INCLUDE := include
-export CFLAGS += --std=c11 -m32 -nostdinc
+export CFLAGS += --std=c11 -m32 -nostdinc -fno-stack-protector -fno-builtin
 
 all:
 	$(MAKE) -C src
