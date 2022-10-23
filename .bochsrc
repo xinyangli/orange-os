@@ -1,0 +1,30 @@
+###############################
+# Configuration file for Bochs #
+################################
+
+# Memory for virtual machine
+megs: 32
+
+# file name of ROM image
+# You may need to change the path according to your installation 
+romimage: file=/usr/local/share/bochs/BIOS-bochs-latest
+vgaromimage: file=/usr/local/share/bochs/VGABIOS-lgpl-latest
+
+debug: action=ignore
+floppya: 1_44=a.img, status=inserted
+ata0-master: type=disk, path="c.img", cylinders=20, heads=16, spt=63
+
+# Boot drive
+boot: floppy
+
+# Log file
+# log: bochsout.log
+
+# disable the mouse
+mouse: enabled=0
+
+# enable keyboard mapping
+keyboard: keymap=/usr/local/share/bochs/keymaps/sdl2-pc-us.map
+
+# break when encounter `xchg bx, bx`
+magic_break: enabled=1

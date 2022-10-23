@@ -17,7 +17,7 @@ $(BINBOOT): boot.asm
 	$(AS) $(ASFLAGS) $< -o $@
 	cp $(BINBOOT) $(BOOTBLOCK_TARGET)
 
-$(BINLOADER): loader.asm fatheader.c loader.ld
+$(BINLOADER): loader.asm loader.c loader.ld
 	$(CC) $(CFLAGS) -c loader.c -o loaderc.o
 	$(AS) $(ASFLAGS) -f elf $(BINLOADER:%.bin=%.asm) -o loader.o
 	$(LD) -T loader.ld loader.o loaderc.o -o loader.bin

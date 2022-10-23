@@ -16,6 +16,7 @@ start:
         mov eax, dataseg
         mov ds, ax
         ; gdt.ptr是一个32位指针
+        ; TODO: 或许有更优雅的方式加载 gdt
         lgdt [ds:gdt.ptr - gdt]
         
         ; Enable A20
@@ -32,7 +33,6 @@ start:
 
 start32:
 [BITS 32]
-        BOCHS_BREAK
 
         ; 初始化数据选择子
         mov ax, SelectorData
