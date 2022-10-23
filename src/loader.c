@@ -9,6 +9,7 @@ static fat_superblock_t fat_superblock;
 static u8 img_buf[CLUSSIZE], fat_buf[SECTSIZE];
 static int fat_sector = 0; /* fat_buf中保存的fat表为fat的第fat_sector扇区 */
 static int fat_offset, data_sector;
+struct elfhdr *elf;
 
 static void read_sect(void *dst, u32 offset, int cnt);
 static u32 next_clus(u32 clus);
@@ -19,7 +20,6 @@ __attribute__((noreturn)) void main() {
     char s[] = {'Y', 0xF, 'e', 0xF, 's', 0xF};
     char buf[18] = {0};
     fat_superblock_t *sb = &fat_superblock;
-    struct elfhdr *elf;
     void (*entry)(void) = NULL;
     __builtin_memcpy((void *)0xB8000, s, 6);
     load_dbr();
@@ -37,7 +37,9 @@ __attribute__((noreturn)) void main() {
                     *(u16 *)(p_buf + 0x14) << 16 | *(u16 *)(p_buf + 0x1A);
                 load_kernel(start_clus, (void *)0x100000);
                 /* Jump to kernel */
-                
+                elf = (struct elfhdr *)(0x100000);
+                entry = (void (*) (void))(elf->entry);
+                entry();
             }
         }
         clus = next_clus(clus);
@@ -105,11 +107,22 @@ static inline u32 next_clus(u32 cluster) {
 
 static void load_kernel(u32 start_clus, void *kernel_addr) {
     u32 clus = start_clus;
+    void *addr = kernel_addr;
+    struct proghdr *ph, *ph_end;
+    u8 *pa;
     do {
-        read_sect(img_buf,
+        read_sect(kernel_addr,
                   data_sector + clus * fat_superblock.sectors_per_cluster,
                   fat_superblock.sectors_per_cluster);
         kernel_addr += CLUSSIZE;
         clus = next_clus(clus);
     } while ((clus & 0x0FFFFFFFu) >= 0x0FFFFFF8u);
+    
+    /* Copy elf sections to memory position */
+    ph = (struct proghdr*) ((u8 *) elf + elf->phoff);
+    ph_end = ph + elf->phnum;
+    for(; ph < ph_end; ph++) {
+        pa = (u8 *)ph->paddr;
+        memcpy(pa, kernel_addr + ph->off, ph->memsz);
+    }
 }
