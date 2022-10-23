@@ -8,7 +8,7 @@ OBJ := page_alloc.o start.o handler.o klib.o global.o
 all: kernel
 
 kernel: $(OBJ)
-	$(LD) $(CFLAGS) -Ttext 0x120000 $(ASM) $(OBJ) -o $(KERNEL_TARGET)
+	$(LD) $(LDFLAGS) -Ttext 0x120000 $(ASM) $(OBJ) -o $(KERNEL_TARGET)
 
 $(OBJ):%.o: %.c $(ASM)
 	$(CC) $(CFLAGS) -c $< -o $@
