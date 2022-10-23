@@ -3,9 +3,14 @@ extern PtDisp
 
 global _start
 
+[SECTION .bss]
+    StackSpace resb 2*1024
+    StackTop:
 
 [SECTION .text]
 _start:
+    xchg bx, bx
+    mov esp, StackTop
     call kernel_start
     ; 调用中断
     int 80h

@@ -3,7 +3,7 @@
 #include "elf.h"
 
 #define SECTSIZE 512
-#define CLUSSIZE 4096
+#define CLUSSIZE 512
 static fat_superblock_t fat_superblock;
 static u8 img_buf[CLUSSIZE], fat_buf[SECTSIZE];
 static int fat_sector = 0; /* fat_buf中保存的fat表为fat的第fat_sector扇区 */
@@ -26,10 +26,12 @@ __attribute__((noreturn)) void main() {
     fat_superblock_t *sb = &fat_superblock;
     void (*entry)(void) = NULL;
     __builtin_memcpy((void *)0xB8000, s, 6);
+    outb(0x1F6, 0xE0);
     load_dbr();
     itohstr(data_sector, buf);
     __builtin_memcpy((void *)0xB8010, buf, 18);
 
+    read_sect(fat_buf, sb->reserved_sectors_num + fat_sector, 1);
     /* Parse root cluster */
     u32 clus = sb->root_clus;
     do {
@@ -42,7 +44,6 @@ __attribute__((noreturn)) void main() {
                 load_kernel(start_clus, (void *)0x100000);
                 /* Jump to kernel */
                 entry = (void (*) (void))(elf->entry);
-                BOCHS_BREAK();
                 entry();
             }
         }
@@ -61,16 +62,20 @@ void wait_disk(void) {
 // Read a single sector at offset into dst.
 static void read_sect(void *dst, u32 offset, int cnt) {
     // Issue command.
-    outb(0x1F2, cnt); // count = 1
-    outb(0x1F3, offset);
-    outb(0x1F4, offset >> 8);
-    outb(0x1F5, offset >> 16);
-    outb(0x1F6, (offset >> 24) | 0xE0);
-    outb(0x1F7, 0x20); // cmd 0x20 - read sectors
+    while (cnt--) {
+        wait_disk();
+        outb(0x1F2, 1); // count = 1
+        outb(0x1F3, offset);
+        outb(0x1F4, offset >> 8);
+        outb(0x1F5, offset >> 16);
+        outb(0x1F6, (offset >> 24) | 0xE0);
+        outb(0x1F7, 0x20); // cmd 0x20 - read sectors
 
-    // Read data.
-    wait_disk();
-    insl(0x1F0, dst, SECTSIZE / 4);
+        // Read data.
+        wait_disk();
+        insl(0x1F0, dst, SECTSIZE / 4);
+        dst += SECTSIZE;
+    }
 }
 
 static void load_dbr() {
@@ -102,9 +107,9 @@ static inline u32 next_clus(u32 cluster) {
         fat_sector = cluster / (SECTSIZE / 4);
         read_sect(
             fat_buf,
-            sb->reserved_sectors_num + fat_sector * sb->sectors_per_cluster, 1);
+            sb->reserved_sectors_num + fat_sector, 1);
     }
-    nxt = *(u32 *)(fat_buf + fat_offset % (SECTSIZE / 4));
+    nxt = *(((u32 *)fat_buf) + cluster % (SECTSIZE / 4));
     return nxt;
 }
 
@@ -114,21 +119,20 @@ static void load_kernel(u32 start_clus, void *kernel_addr) {
     struct proghdr *ph, *ph_end;
     u8 *pa;
     do {
-        read_sect(kernel_addr,
+        read_sect(addr,
                   data_sector + clus * fat_superblock.sectors_per_cluster,
                   fat_superblock.sectors_per_cluster);
         addr += CLUSSIZE;
         clus = next_clus(clus);
-    } while ((clus & 0x0FFFFFFFu) >= 0x0FFFFFF8u);
+    } while ((clus & 0x0FFFFFFFu) < 0x0FFFFFF8u);
     
     elf = (struct elfhdr *)(kernel_addr);
     /* Copy elf sections to memory position */
     ph = (struct proghdr*) ((u8 *) elf + elf->phoff);
     ph_end = ph + elf->phnum;
-    BOCHS_BREAK();
     for(; ph < ph_end; ph++) {
         pa = (u8 *)ph->paddr;
-        memcpy(pa, kernel_addr + ph->off, ph->memsz);
+        if ((int)pa >= 0x120000) memcpy(pa, kernel_addr + ph->off, ph->memsz);
     }
 }
 

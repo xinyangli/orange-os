@@ -2,11 +2,11 @@ export BOOTBLOCK_TARGET := dbr.img
 export BOOTLOADER_TARGET := loader.bin
 export KERNEL_TARGET := okernel
 
-export CC := i586-suse-linux-gcc
+export CC := gcc
 export AS := nasm
 
 export INCLUDE := include
-export CFLAGS += --std=c11 -m32 -nostdlib -fno-stack-protector -fno-builtin -Og -mno-sse
+export CFLAGS += -std=c11 -m32 -nostdlib -fno-stack-protector -fno-builtin -Og -mno-sse -fno-PIE -fuse-ld=lld
 
 all:
 	$(MAKE) -C load

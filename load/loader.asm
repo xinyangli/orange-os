@@ -69,11 +69,11 @@ memcpy:
     push esi
     push ecx
     
-    mov edi, [ebp + 8]
-    mov esi, [ebp + 12]
-    mov ecx, [ebp + 16]
+    mov edi, [ebp + 8]  ; dst
+    mov esi, [ebp + 12] ; src
+    mov ecx, [ebp + 16] ; size
 .cp:
-    cli
+    cld
     lodsb
     stosb
     loop .cp

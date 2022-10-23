@@ -7,10 +7,10 @@
 #define GDT_SIZE 128
 #define IDT_SIZE 256
 
-int PtDisp;
-u8 gdt_ptr[6];
-DESCRIPTOR gdt[GDT_SIZE];
-u8 idt_ptr[6];
-GATE idt[IDT_SIZE];
+extern int PtDisp;
+extern u8 gdt_ptr[6];
+extern DESCRIPTOR gdt[GDT_SIZE];
+extern u8 idt_ptr[6];
+extern GATE idt[IDT_SIZE];
 
 #endif //ORANGE_OS_GLOBAL_H
