@@ -3,7 +3,6 @@ BOOTBLOCK_TARGET := $(addprefix ../, $(BOOTBLOCK_TARGET))
 BOOTLOADER_TARGET := $(addprefix ../, $(BOOTLOADER_TARGET))
 CFLAGS += $(patsubst %, -I%, $(INCLUDE))
 ASFLAGS += $(patsubst %, -I%, $(INCLUDE))
-OBJ = page_alloc.o
 BINBOOT = boot.bin
 BINLOADER = loader.bin
 
