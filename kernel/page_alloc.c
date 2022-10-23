@@ -47,8 +47,3 @@ void free_pages(PM paddr, unsigned int order) {
     ++corder; pos >>= 1;
   }
 }
-
-int main() {
-
-  return 0;
-}

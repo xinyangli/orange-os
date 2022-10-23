@@ -6,10 +6,11 @@ export CC := i586-suse-linux-gcc
 export AS := nasm
 
 export INCLUDE := include
-export CFLAGS += --std=c11 -m32 -nostdinc -fno-stack-protector -fno-builtin -O2 -mno-sse
+export CFLAGS += --std=c11 -m32 -nostdlib -fno-stack-protector -fno-builtin -Og -mno-sse
 
 all:
-	$(MAKE) -C src
+	$(MAKE) -C load
+	$(MAKE) -C kernel
 
 bochs: all .bochsrc
 	scripts/mkfd.sh
@@ -18,5 +19,6 @@ bochs: all .bochsrc
 .phony: clean
 
 clean:
-	$(MAKE) -C src clean
+	$(MAKE) -C load clean
+	$(MAKE) -C kernel clean
 	$(RM) $(KERNEL_TARGET) $(BOOTBLOCK_TARGET) $(BOOTBLOCK_TARGET)

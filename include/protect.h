@@ -8,7 +8,7 @@
 #ifndef _ORANGES_PROTECT_H_
 #define _ORANGES_PROTECT_H_
 
-#include "type.h"
+#include "types.h"
 
 
 /* 存储段描述符/系统段描述符 */
@@ -99,4 +99,4 @@ typedef struct s_gate
 #define	INT_VECTOR_IRQ8			0x28
 
 
-#endif /* _ORANGES_PROTECT_H_ */
+#endif // _ORANGES_PROTECT_H_

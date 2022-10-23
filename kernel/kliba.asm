@@ -155,6 +155,7 @@ memcpy:
     mov esi, [ebp + 12]
     mov ecx, [ebp + 16]
 .cp:
+    cld
     lodsb
     stosb
     loop .cp

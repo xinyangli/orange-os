@@ -1,6 +1,6 @@
 #include "klib.h"
 #include "global.h"
-#include "type.h"
+#include "types.h"
 #include "protect.h"
 #include "handler.h"
 
@@ -17,10 +17,10 @@ void relocate_gdt() {
 void init_idt() {
     // 初始化中断门
     int i;
-    for(i = 0; i < IDT_SIZE; i++) init_gate(&idt[i], DA_386IGate, (void*)empty_handler, PRIVILEGE_KRNL);
+    for(i = 0; i < IDT_SIZE; i++) init_gate(&idt[i], DA_386IGate, (void*)empty_handler, 0);
     // 设置时间中断和键盘中断
-    init_gate(&idt[0x20], DA_386IGate, (void*)clock_handler, PRIVILEGE_KRNL);
-    init_gate(&idt[0x21], DA_386IGate, (void*)KeyBoardHandler, PRIVILEGE_KRNL);
+    init_gate(&idt[0x20], DA_386IGate, (void*)clock_handler, 0);
+    init_gate(&idt[0x21], DA_386IGate, (void*)KeyBoardHandler, 0);
     // 设置 idt_ptr
     u16* p_idt_limit = (u16*)(&idt_ptr[0]);
     u32* p_idt_base = (u32*)(&idt_ptr[2]);

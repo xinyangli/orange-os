@@ -1,6 +1,5 @@
 #include "asm.h"
 #include "loader.h"
-#include "klib.h"
 #include "elf.h"
 
 #define SECTSIZE 512
@@ -15,6 +14,11 @@ static void read_sect(void *dst, u32 offset, int cnt);
 static u32 next_clus(u32 clus);
 static void load_dbr();
 static void load_kernel(u32 start_clus, void *kernel_addr);
+
+static inline void itohstr(int num, char *buf);
+static inline int strncmp(const char *s1, const char *s2, size_t n);
+
+void* memcpy(void *dst, void *src, size_t siz);
 
 __attribute__((noreturn)) void main() {
     char s[] = {'Y', 0xF, 'e', 0xF, 's', 0xF};
@@ -37,8 +41,8 @@ __attribute__((noreturn)) void main() {
                     *(u16 *)(p_buf + 0x14) << 16 | *(u16 *)(p_buf + 0x1A);
                 load_kernel(start_clus, (void *)0x100000);
                 /* Jump to kernel */
-                elf = (struct elfhdr *)(0x100000);
                 entry = (void (*) (void))(elf->entry);
+                BOCHS_BREAK();
                 entry();
             }
         }
@@ -67,7 +71,6 @@ static void read_sect(void *dst, u32 offset, int cnt) {
     // Read data.
     wait_disk();
     insl(0x1F0, dst, SECTSIZE / 4);
-    BOCHS_BREAK();
 }
 
 static void load_dbr() {
@@ -114,15 +117,42 @@ static void load_kernel(u32 start_clus, void *kernel_addr) {
         read_sect(kernel_addr,
                   data_sector + clus * fat_superblock.sectors_per_cluster,
                   fat_superblock.sectors_per_cluster);
-        kernel_addr += CLUSSIZE;
+        addr += CLUSSIZE;
         clus = next_clus(clus);
     } while ((clus & 0x0FFFFFFFu) >= 0x0FFFFFF8u);
     
+    elf = (struct elfhdr *)(kernel_addr);
     /* Copy elf sections to memory position */
     ph = (struct proghdr*) ((u8 *) elf + elf->phoff);
     ph_end = ph + elf->phnum;
+    BOCHS_BREAK();
     for(; ph < ph_end; ph++) {
         pa = (u8 *)ph->paddr;
         memcpy(pa, kernel_addr + ph->off, ph->memsz);
+    }
+}
+
+
+static inline void itohstr(int num, char *buf) {
+    for(int i = 15; i >= 0; i -= 2) {
+        buf[i] = 0xF;
+        buf[i-1] = num % 16;
+        buf[i-1] += buf[i-1] > 9 ? 'A' - 10 : '0';
+        num /= 16;
+    }
+    buf[16] = '$';
+    buf[17] = 0xF;
+}
+
+static inline int strncmp(const char *s1, const char *s2, size_t n) {
+    int i_s1 = 0, i_s2 = 0;
+    while (n && s1[i_s1] != '\0' && s2[i_s2] != '\0' && s1[i_s1] == s2[i_s2]) {
+        --n; ++i_s1; ++i_s2;
+    }
+    if (n == 0 || s1[i_s1] == s2[i_s2]) {
+        /* Same str */
+        return 0;
+    } else {
+        return -1;
     }
 }

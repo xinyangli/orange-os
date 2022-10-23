@@ -1,3 +1,5 @@
+#ifndef ORANGE_OS_ASM_H
+#define ORANGE_OS_ASM_H
 #include "types.h"
 
 static inline u8 inb(u16 port) {
@@ -21,3 +23,4 @@ static inline void insl(int port, void *addr, int cnt) {
 static inline void BOCHS_BREAK() {
     __asm__ __volatile__("xchgw %bx, %bx");
 }
+#endif // ORANGE_OS_ASM_H

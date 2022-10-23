@@ -1,6 +1,6 @@
 #include "handler.h"
 #include "protect.h"
-#include "type.h"
+#include "types.h"
 #include "klib.h"
 
 void init_gate(GATE *p_gate, u8 type, void *handler, u8 privilege) {
@@ -8,7 +8,7 @@ void init_gate(GATE *p_gate, u8 type, void *handler, u8 privilege) {
     p_gate->offset_low = base & 0xFFFF;
     p_gate->selector = SELECTOR_KERNEL_CS;
     p_gate->dcount = 0;
-    p_gate->attr = desc_type | (privilege << 5);
+    p_gate->attr = type | (privilege << 5);
     p_gate->offset_high = (base >> 16) & 0xFFFF;
 }
 
