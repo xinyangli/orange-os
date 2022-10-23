@@ -2,6 +2,7 @@
 #define ORANGE_OS_GLOBAL_H
 
 #include "protect.h"
+#include "types.h"
 
 #define GDT_SIZE 128
 #define IDT_SIZE 256
