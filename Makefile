@@ -6,7 +6,8 @@ export CC := gcc
 export AS := nasm
 
 export INCLUDE := include
-export CFLAGS += -std=c11 -m32 -nostdlib -fno-stack-protector -fno-builtin -Og -mno-sse -fno-PIE -fuse-ld=lld
+export CFLAGS += -std=c11 -m32 -nostdlib -fno-stack-protector -fno-builtin -Og -mno-sse -fno-PIE
+export LDFLAGS := -melf_i386 -s
 
 all:
 	$(MAKE) -C load

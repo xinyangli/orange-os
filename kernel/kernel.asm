@@ -9,7 +9,6 @@ global _start
 
 [SECTION .text]
 _start:
-    xchg bx, bx
     mov esp, StackTop
     call kernel_start
     ; 调用中断

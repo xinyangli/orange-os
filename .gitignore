@@ -76,6 +76,7 @@ bin/
 # Clangd
 .cache
 compile_commands.json
+.clangd/
 
 # build result
 okernel

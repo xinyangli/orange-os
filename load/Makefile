@@ -16,7 +16,7 @@ $(BINBOOT): boot.asm
 $(BINLOADER): loader.asm loader.c loader.ld
 	$(CC) $(CFLAGS) -c loader.c -o loaderc.o
 	$(AS) $(ASFLAGS) -f elf $(BINLOADER:%.bin=%.asm) -o loader.o
-	$(LD) -T loader.ld loader.o loaderc.o -o loader.bin
+	$(LD) $(LDFLAGS) -T loader.ld loader.o loaderc.o -o loader.bin
 	cp $(BINLOADER) $(BOOTLOADER_TARGET)
 
 .phony: clean
