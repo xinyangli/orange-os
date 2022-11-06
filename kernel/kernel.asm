@@ -15,7 +15,7 @@ extern	p_proc_ready
 extern	tss
 extern	k_reenter
 
-global _start, restart
+global StackTop, _start, restart
 
 ; struct PROCESS
 P_STACKBASE	equ	0

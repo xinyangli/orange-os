@@ -42,7 +42,7 @@ void init_idt() {
         init_gate(&idt[i], DA_386IGate, (void *)empty_handler, 0);
     // 设置时间中断和键盘中断
     init_gate(&idt[0x20], DA_386IGate, (void *)clock_handler, 0);
-    init_gate(&idt[0x21], DA_386IGate, (void*)KeyBoardHandler, 0);
+    // init_gate(&idt[0x21], DA_386IGate, (void*)KeyBoardHandler, 0);
     // 设置 idt_ptr
     u16 *p_idt_limit = (u16 *)(&idt_ptr[0]);
     u32 *p_idt_base = (u32 *)(&idt_ptr[2]);
@@ -51,7 +51,7 @@ void init_idt() {
     // 设置 8259a
     set_8259a();
     // 设置 IMREG 开启键盘和定时器中断
-    out_byte(0x21, 0xFC); // 主 <= OCW1
+    out_byte(0x21, 0xFE); // 主 <= OCW1
     out_byte(0xA1, 0xFF); // 从 <= OCW1
     // 加载 idt 并开启中断
     apply_idt();

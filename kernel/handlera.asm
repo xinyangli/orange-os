@@ -4,6 +4,7 @@ extern PtDisp
 extern	p_proc_ready
 extern	tss
 extern	k_reenter
+extern StackTop
 
 ; struct PROCESS
 P_STACKBASE	equ	0
@@ -59,7 +60,7 @@ clock_handler:
     mov es, dx
 
     mov al, 20h
-    in 20h, al
+    out 20h, al
 
     inc dword [k_reenter]
     cmp dword [k_reenter], 0
