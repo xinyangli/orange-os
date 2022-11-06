@@ -2,7 +2,6 @@
 #define ORANGE_OS_PROC_H
 #include "types.h"
 #include "protect.h"
-#include "global.h"
 
 #define LDT_SIZE 128
 

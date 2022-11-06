@@ -2,7 +2,6 @@
 #define _ORANGES_PROTECT_H_
 
 #include "types.h"
-#include "global.h"
 
 /* 存储段描述符/系统段描述符 */
 typedef struct {
