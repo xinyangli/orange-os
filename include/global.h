@@ -1,9 +1,9 @@
 #ifndef ORANGE_OS_GLOBAL_H
 #define ORANGE_OS_GLOBAL_H
 
-#include "protect.h"
 #include "types.h"
 #include "proc.h"
+#include "protect.h"
 
 #define GDT_SIZE 128
 #define IDT_SIZE 256
@@ -31,5 +31,10 @@ extern PROCESS *p_proc_ready;
 
 extern PROCESS proc_table[];
 extern char task_stack[];
+
+void init_gate(GATE *p_gate, u8 type, void *handler, u8 privilege);
+void init_descriptor(DESCRIPTOR *p_desc, u32 base, u32 limit, u16 attribute);
+
+u32 seg2phys(u16 seg);
 
 #endif // ORANGE_OS_GLOBAL_H

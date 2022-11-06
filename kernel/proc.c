@@ -16,7 +16,8 @@ void TestA() {
     }
 }
 
-int kernel_main() {
+int init_proc() {
+    disp_clear();
     DispStr("-----\"kernel_main\" begins-----\n");
 
     PROCESS *p_proc = proc_table;
@@ -42,4 +43,5 @@ int kernel_main() {
 
     while (1)
         ;
+    return 1;
 }

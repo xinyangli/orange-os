@@ -3,7 +3,7 @@ KERNEL_TARGET := $(addprefix ../, $(KERNEL_TARGET))
 CFLAGS += $(patsubst %, -I%, $(INCLUDE)) -s
 ASFLAGS += $(patsubst %, -I%, $(INCLUDE))
 ASM := kernel.o handlera.o kliba.o
-OBJ := page_alloc.o start.o handler.o klib.o global.o main.o
+OBJ := page_alloc.o start.o handler.o klib.o global.o proc.o
 
 all: kernel
 

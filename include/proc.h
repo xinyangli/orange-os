@@ -2,6 +2,7 @@
 #define ORANGE_OS_PROC_H
 #include "types.h"
 #include "protect.h"
+#include "global.h"
 
 #define LDT_SIZE 128
 
@@ -44,4 +45,8 @@ typedef struct {
 #define STACK_SIZE_TESTA 0x8000
 
 #define STACK_SIZE_TOTAL STACK_SIZE_TESTA
+
+void TestA();
+int init_proc();
+
 #endif // ORANGE_OS_PROC_H
