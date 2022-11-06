@@ -10,7 +10,7 @@ export CFLAGS += -std=c11 -m32 -nostdlib -fno-stack-protector -fno-builtin -Og -
 export LDFLAGS := -melf_i386 -s
 
 all:
-	$(MAKE) -C load
+	$(MAKE) -C boot
 	$(MAKE) -C kernel
 
 bochs: all .bochsrc
