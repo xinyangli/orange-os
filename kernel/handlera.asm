@@ -19,17 +19,50 @@ empty_handler:
 ; 时钟中断 效果是显示一个变化的字符
 global clock_handler
 clock_handler:
-    push eax
+    sub esp, 4
+    pushad
+    push ds
+    push es
+    push fs
+    push gs
+    mov dx, ss
+    mov ds, dx
+    mov es, dx
+
+    mov al, 20h
+    in 20h, al
+
+    inc dword [k_reenter]
+    cmp dword [k_reenter], 0
+    jne .exit
+
+    mov esp, StackTop
+
+    sti
+
     cmp byte [gs:CharPos], `Z`
     je .2
     inc byte [gs:CharPos]
     jmp .exit
 .2:
     mov byte [gs:CharPos], `A`
+ 
+    cli
+    mov esp, [p_proc_ready] 
+
+    lea eax, [esp + P_STACKTOP] 
+    mov dword [tss + TSS3_S_SP0], eax
+
 .exit:
-    mov al, 20h
-    out 20h, al
-    pop eax
+    dec dword [k_reenter]    
+    
+    pop gs
+    pop fs
+    pop es
+    pop ds
+    popad
+    add esp, 4
+     
     iretd
 
 ; ===============================================
