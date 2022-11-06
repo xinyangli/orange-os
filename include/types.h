@@ -7,8 +7,8 @@ typedef void *VM;
 typedef void *PM;
 
 typedef struct {
-  unsigned int *map;
-  int size; /* size of bitmap array */
+    unsigned int *map;
+    int size;       /* size of bitmap array */
 } free_area_t;
 
 typedef unsigned int u32;
@@ -18,4 +18,4 @@ typedef int i32;
 typedef short i16;
 typedef char i8;
 
-#endif //ORANGE_OS_MM_TY  
+#endif // ORANGE_OS_MM_TY

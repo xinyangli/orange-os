@@ -47,5 +47,8 @@ void kernel_start() {
     // 设置 idt
     init_idt();
     // finish
+
+    // show graphic for some time
+    delay(3);
     return;
 }
