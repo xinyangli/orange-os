@@ -9,6 +9,7 @@ u8 idt_ptr[6];
 GATE idt[IDT_SIZE];
 
 u32 k_reenter;
+u32 old_esp;
 
 TSS tss;
 PROCESS *p_proc_ready;

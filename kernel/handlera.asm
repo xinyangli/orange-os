@@ -5,6 +5,7 @@ extern	p_proc_ready
 extern	tss
 extern	k_reenter
 extern StackTop
+extern old_esp
 
 ; struct PROCESS
 P_STACKBASE	equ	0
@@ -66,6 +67,7 @@ clock_handler:
     cmp dword [k_reenter], 0
     jne .reenter
 
+    mov [old_esp], esp
     mov esp, StackTop
 
     sti
@@ -79,7 +81,7 @@ clock_handler:
 
 .exit:
     cli
-    mov esp, [p_proc_ready] 
+    mov esp, [old_esp] 
 
     lea eax, [esp + P_STACKTOP] 
     mov dword [tss + TSS3_S_SP0], eax
