@@ -64,7 +64,7 @@ clock_handler:
 
     inc dword [k_reenter]
     cmp dword [k_reenter], 0
-    jne .exit
+    jne .reenter
 
     mov esp, StackTop
 
@@ -76,14 +76,15 @@ clock_handler:
     jmp .exit
 .2:
     mov byte [gs:CharPos], `A`
- 
+
+.exit:
     cli
     mov esp, [p_proc_ready] 
 
     lea eax, [esp + P_STACKTOP] 
     mov dword [tss + TSS3_S_SP0], eax
 
-.exit:
+.reenter:
     dec dword [k_reenter]    
     
     pop gs
