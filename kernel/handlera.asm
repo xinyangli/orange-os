@@ -72,6 +72,7 @@ clock_handler:
 
     sti
 
+    mov byte [gs:CharPos + 1], 0Ch
     cmp byte [gs:CharPos], `Z`
     je .2
     inc byte [gs:CharPos]
