@@ -144,62 +144,6 @@ in_byte:
     ret
 
 ; ================================================
-; 内存复制
-; void* memcpy(void *dst, void *src, size_t siz)
-
-
-memcpy:
-    push ebp
-    mov ebp, esp
-    
-    push edi
-    push esi
-    push ecx
-    
-    mov edi, [ebp + 8]
-    mov esi, [ebp + 12]
-    mov ecx, [ebp + 16]
-.cp:
-    cld
-    lodsb
-    stosb
-    loop .cp
-
-    mov eax, [ebp + 8]
-
-    pop ecx
-    pop esi
-    pop edi
-    pop ebp
-    ret
-
-; ================================================
-; 内存覆盖
-; void* memset(void *dst, u8 val, size_t siz)
-
-
-memset:
-    push ebp
-    mov ebp, esp
-    
-    push edi
-    push ecx
-    
-    mov edi, [ebp + 8]
-    mov al, [ebp + 12]
-    mov ecx, [ebp + 16]
-.cp:
-    stosb
-    loop .cp
-
-    mov eax, [ebp + 8]
-
-    pop ecx
-    pop edi
-    pop ebp
-    ret
-
-; ================================================
 
 ; 内核的代码段选择子
 ; 每个描述符 64 位 8 个字节
