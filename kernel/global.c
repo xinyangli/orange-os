@@ -17,6 +17,11 @@ PROCESS *p_proc_ready;
 PROCESS proc_table[1];
 char task_stack[1];
 
+// use for proc.c - check_testA
+u8 ti = 0xFFU;
+int disp2 = 0;
+u32 ori = 0;
+
 void init_gate(GATE *p_gate, u8 type, void *handler, u8 privilege) {
     u32 base = (u32)handler;
     p_gate->offset_low = base & 0xFFFF;

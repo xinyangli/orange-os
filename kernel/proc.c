@@ -44,11 +44,6 @@ int init_proc() {
     return 1;
 }
 
-// use for proc.c - check_testA
-u8 ti = 0xFFU;
-int disp2 = 0;
-u32 ori = 0;
-
 int check_testA() {
     // 静态变量
     // static u8 ti = 0xFFU;

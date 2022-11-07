@@ -34,6 +34,11 @@ extern char task_stack[];
 
 extern u32 old_esp;
 
+// use for proc.c - check_testA
+extern u8 ti;
+extern int disp2;
+extern u32 ori;
+
 void init_gate(GATE *p_gate, u8 type, void *handler, u8 privilege);
 void init_descriptor(DESCRIPTOR *p_desc, u32 base, u32 limit, u16 attribute);
 
