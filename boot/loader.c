@@ -18,6 +18,12 @@ static void load_kernel(u32 start_clus, void *kernel_addr);
 static inline void itohstr(int num, char *buf);
 static inline int strncmp(const char *s1, const char *s2, size_t n);
 
+static void memset(void *dst, u8 c, size_t siz) {
+    // TODO: Optimize performance
+    for(int i = 0; i < siz; i++) {
+        *(u8*)dst = c;
+    }
+}
 void* memcpy(void *dst, void *src, size_t siz);
 
 __attribute__((noreturn)) void main() {
@@ -132,7 +138,10 @@ static void load_kernel(u32 start_clus, void *kernel_addr) {
     ph_end = ph + elf->phnum;
     for(; ph < ph_end; ph++) {
         pa = (u8 *)ph->paddr;
-        if ((int)pa >= 0x120000) memcpy(pa, kernel_addr + ph->off, ph->memsz);
+        if (ph->type == ELF_PROG_LOAD) {
+            memcpy(pa, kernel_addr + ph->off, ph->filesz);
+            memset(pa + ph->filesz, 0, ph->memsz - ph->filesz);
+        }
     }
 }
 
