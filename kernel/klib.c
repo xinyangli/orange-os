@@ -32,7 +32,7 @@ u32 get_hash(u8 *s, int len) {
 }
 
 void disp_int(int x) {
-	char s[30];
+	static char s[30];
 	int n = 0;
 	while(x) {
 		s[n++] = (x % 10) + 48;
