@@ -38,6 +38,7 @@ void disp_int(int x) {
 		s[n++] = (x % 10) + 48;
 		x /= 10;
 	}
+	if(n == 0) s[n++] = 48;
 	s[n] = 0;
 	for(int i = 0; i < n >> 1; i++) {
 		char t = s[i];
