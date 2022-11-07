@@ -7,6 +7,7 @@ global in_byte
 global gain_gdt
 global apply_gdt
 global apply_idt
+global apply_tss
 
 [SECTION .text]
 
