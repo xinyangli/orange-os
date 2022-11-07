@@ -94,7 +94,7 @@ gdt:
 .null:  Descriptor 0, 0, 0
 .text:  Descriptor 0, 0xFFFFF, DA_CR | DA_32 | DA_LIMIT_4K
 .data:  Descriptor 0, 0xFFFFF, DA_DRW | DA_32 | DA_LIMIT_4K
-.video: Descriptor 0B8000h, 0ffffh, DA_DRW
+.video: Descriptor 0B8000h, 0ffffh, DA_DRW | DA_DPL3
 
 .ptr:   dw $ - gdt - 1
         dd gdt
