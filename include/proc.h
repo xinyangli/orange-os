@@ -47,5 +47,6 @@ typedef struct {
 
 void TestA();
 int init_proc();
+int check_testA();
 
 #endif // ORANGE_OS_PROC_H

@@ -6,6 +6,7 @@ extern	tss
 extern	k_reenter
 extern StackTop
 extern old_esp
+extern check_testA
 
 ; struct PROCESS
 P_STACKBASE	equ	0
@@ -81,6 +82,9 @@ clock_handler:
     mov byte [gs:CharPos], `A`
 
 .exit:
+    ; 检查 testA 的代码完整性
+    call check_testA
+
     cli
     mov esp, [old_esp] 
 

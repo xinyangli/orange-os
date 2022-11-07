@@ -43,3 +43,26 @@ int init_proc() {
         ;
     return 1;
 }
+
+int check_testA() {
+    // 静态变量
+    static u8 ti = 0xFFFFU;
+    static int disp2 = 0;
+    static u32 ori = 0;
+    // 初始 hash
+    if(ori == 0) ori = get_hash(TestA, init_proc - TestA);
+    // 检查间隔
+    ++ti;
+    if(ti != 0) return 0; 
+    // 设置 PtDisp
+    int t = PtDisp;
+    PtDisp = disp2;
+    // 检查 hash
+    if(ori != get_hash(TestA, init_proc - TestA))
+        DispColStr("Warning: TestA has been changed!\n", 0x0C);
+    else DispColStr("Success!\n", 0x02);
+    // 还原 PtDisp
+    disp2 = PtDisp;
+    PtDisp = t;
+    return 0;
+}

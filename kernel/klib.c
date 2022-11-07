@@ -21,3 +21,12 @@ void delay(int time)
 		}
 	}
 }
+
+u32 get_hash(u8 *s, int len) {
+	u32 res = 0;
+	for(int i = 0; i < len; i++) {
+		res = (res << 25) ^ (res >> 7) ^ s[i];
+		res = res % 998244353;
+	}
+	return res;
+}
