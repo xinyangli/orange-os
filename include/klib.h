@@ -16,6 +16,7 @@ int disp_clear();
 void gain_gdt();
 void apply_gdt();
 void apply_idt();
+void apply_tss(u16 sec);
 void delay();
 
 #endif //ORANGE_OS_KLIB_H_

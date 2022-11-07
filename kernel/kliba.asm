@@ -227,3 +227,8 @@ apply_idt:
     lidt [idt_ptr]
     sti
     ret
+
+apply_tss:
+    pop eax
+    ltr ax
+    ret

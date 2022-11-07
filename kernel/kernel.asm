@@ -50,6 +50,7 @@ TSS3_S_SP0	equ	4
 [SECTION .text]
 _start:
     mov esp, StackTop
+    ; 设置了 gdt idt 等
     call kernel_start
     ; 调用中断
     int 80h

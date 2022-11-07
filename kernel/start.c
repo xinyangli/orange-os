@@ -15,15 +15,7 @@ void relocate_gdt() {
     apply_gdt();
 }
 
-void add_gdt_desc() {
-    // Add TSS descriptor to gdt[INDEX_TSS]
-    memset(&tss, 0, sizeof(tss));
-    tss.ss0 = SELECTOR_KERNEL_DS;
-    init_descriptor(&gdt[INDEX_TSS],
-                    vir2phys(seg2phys(SELECTOR_KERNEL_DS), &tss),
-                    sizeof(TSS) - 1, DA_386TSS);
-    tss.iobase = sizeof(tss);
-
+void add_ldt_desc() {
     // LDTs for each task
     PROCESS *p_proc = proc_table;
     u16 index_ldt = INDEX_LDT_FIRST;
@@ -33,6 +25,16 @@ void add_gdt_desc() {
             vir2phys(seg2phys(SELECTOR_KERNEL_DS), proc_table[i].ldts),
             LDT_SIZE * sizeof(DESCRIPTOR) - 1, DA_LDT);
     }
+}
+
+void add_tss_desc() {
+    // Add TSS descriptor to gdt[INDEX_TSS]
+    memset(&tss, 0, sizeof(tss));
+    tss.ss0 = SELECTOR_KERNEL_DS;
+    init_descriptor(&gdt[INDEX_TSS],
+                    vir2phys(seg2phys(SELECTOR_KERNEL_DS), &tss),
+                    sizeof(TSS) - 1, DA_386TSS);
+    tss.iobase = sizeof(tss);
 }
 
 void init_idt() {
@@ -129,14 +131,14 @@ void kernel_start() {
     DispStr("\n");
     // 设置 gdt
     relocate_gdt();
-    add_gdt_desc();
+    add_ldt_desc();
+    add_tss_desc();
+    apply_tss(INDEX_TSS << 3);
     // 设置 idt
     init_idt();
-    // finish
-
     // show graphic for some time
     delay(3);
-
+    // 进程
     init_proc();
     return;
 }
