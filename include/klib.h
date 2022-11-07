@@ -7,8 +7,6 @@
 
 void DispStr(char *s);
 void DispColStr(char *s, u8 col);
-void out_byte(u16 port, u8 byte);
-void in_byte(u16 port);
 int set_Ptdisp(int pos);
 int disp_clear();
 void gain_gdt();
