@@ -20,5 +20,6 @@ void apply_tss(u16 sec);
 void delay();
 
 u32 get_hash(u8 *s, int len);
+void disp_int(int x);
 
 #endif //ORANGE_OS_KLIB_H_

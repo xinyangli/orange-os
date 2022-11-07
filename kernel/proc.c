@@ -10,7 +10,7 @@ void TestA() {
     int i = 0;
     while (1) {
         DispStr("A");
-        // disp_int(i++);
+        disp_int(i++);
         DispStr(".");
         delay(1);
     }
