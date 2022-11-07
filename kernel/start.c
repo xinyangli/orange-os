@@ -38,6 +38,8 @@ void add_tss_desc() {
 }
 
 void init_idt() {
+    // 初始化中断重入计数器
+    k_reenter = -1;
     // 初始化中断门
     int i;
     for (i = 0; i < IDT_SIZE; i++)

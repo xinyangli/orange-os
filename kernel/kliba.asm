@@ -230,6 +230,7 @@ apply_idt:
     ret
 
 apply_tss:
-    pop eax
+    xor eax, eax
+    mov ax, [esp + 4]
     ltr ax
     ret
