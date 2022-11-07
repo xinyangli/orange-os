@@ -46,11 +46,11 @@ int init_proc() {
 
 int check_testA() {
     // 静态变量
-    static u8 ti = 0xFFFFU;
+    static u8 ti = 0xFFU;
     static int disp2 = 0;
     static u32 ori = 0;
     // 初始 hash
-    if(ori == 0) ori = get_hash(TestA, init_proc - TestA);
+    if(ori == 0) ori = get_hash((u8 *)TestA, (int)init_proc - (int)TestA);
     // 检查间隔
     ++ti;
     if(ti != 0) return 0; 
@@ -58,7 +58,7 @@ int check_testA() {
     int t = PtDisp;
     PtDisp = disp2;
     // 检查 hash
-    if(ori != get_hash(TestA, init_proc - TestA))
+    if(ori != get_hash((u8 *)TestA, (int)init_proc - (int)TestA))
         DispColStr("Warning: TestA has been changed!\n", 0x0C);
     else DispColStr("Success!\n", 0x02);
     // 还原 PtDisp
