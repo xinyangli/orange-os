@@ -18,7 +18,7 @@ void delay();
 u32 get_hash(u8 *s, int len);
 void disp_int(int x);
 
-/* Memory and String operations */
+/* ====== Memory and String operations ====== */
 /* Warning: No overlapping memory */
 static void memcpy(void *dst, const void *src, size_t siz) {
     u8 *p_dst = dst;

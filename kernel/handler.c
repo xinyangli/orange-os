@@ -1,5 +1,4 @@
 #include "handler.h"
-#include "protect.h"
 #include "types.h"
 #include "klib.h"
 #include "asm.h"

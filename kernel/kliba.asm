@@ -1,9 +1,5 @@
 global DispStr
 global DispColStr
-global out_byte
-global memset
-global memcpy
-global in_byte
 global gain_gdt
 global apply_gdt
 global apply_idt
@@ -113,41 +109,12 @@ DispColStr:
     pop ebp
     ret
 
-
-; ================================================
-; 往端口传输数据
-; void out_byte(u16 port, u8 data)
-
-out_byte:
-    push ebp
-    mov ebp, esp
-    mov dx, [ebp + 8]
-    mov al, [ebp + 12]
-    out dx, al
-    nop
-    nop
-    pop ebp
-    ret
-
-; ================================================
-; 从端口读入数据
-; u8 in_byte(u16 port)
-
-
-in_byte:
-    push ebp
-    mov ebp, esp
-    mov dx, [ebp + 8]
-    in al, dx
-    nop
-    nop
-    ret
-
 ; ================================================
 
 ; 内核的代码段选择子
 ; 每个描述符 64 位 8 个字节
 ; 根据 loader.asm 这个选择子对应第一个描述符
+; TODO: Make cs portable
 SELECTOR_KERNEL_CS equ 8
 
 extern gdt_ptr

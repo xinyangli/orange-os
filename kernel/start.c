@@ -2,7 +2,7 @@
 #include "global.h"
 #include "proc.h"
 #include "types.h"
-#include "protect.h"
+#include "x86def.h"
 #include "handler.h"
 #include "asm.h"
 

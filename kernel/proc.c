@@ -1,10 +1,9 @@
 #include "klib.h"
 #include "types.h"
-#include "protect.h"
+#include "x86def.h"
 #include "proc.h"
 #include "global.h"
-
-extern void restart();
+#include "asm.h"
 
 void TestA() {
     int i = 0;
@@ -12,8 +11,29 @@ void TestA() {
         DispStr("A");
         disp_int(i++);
         DispStr(".");
-        delay(1);
+        delay(10000);
     }
+}
+
+/* Implemnet restart using inline asm,
+ * so we don't need to declare proc_t in asm*/
+__attribute__((noreturn)) void restart() {
+    lldt(p_proc_ready->ldt_sel);
+    tss.esp0 = (u32)p_proc_ready + sizeof(STACK_FRAME);
+    load_proc_state(&p_proc_ready->regs);
+    iret();
+}
+
+void inline load_proc_state(STACK_FRAME *regs) {
+    __asm__ __inline__("mov %0, %%esp\n"
+                       "pop %%gs\n"
+                       "pop %%fs\n"
+                       "pop %%es\n"
+                       "pop %%ds\n"
+                       "popal\n"
+                       "add $4, %%esp\n"
+                       :
+                       : "rm"(regs));
 }
 
 int init_proc() {
@@ -50,17 +70,18 @@ int check_testA() {
     static int disp2 = 0;
     static u32 ori = 0;
     // 初始 hash
-    if(ori == 0) ori = get_hash((u8 *)TestA, (int)init_proc - (int)TestA);
+    if (ori == 0) ori = get_hash((u8 *)TestA, (int)init_proc - (int)TestA);
     // 检查间隔
     ++ti;
-    if(ti != 0) return 0; 
+    if (ti != 0) return 0;
     // 设置 PtDisp
     int t = PtDisp;
     PtDisp = disp2;
     // 检查 hash
-    if(ori != get_hash((u8 *)TestA, (int)init_proc - (int)TestA))
+    if (ori != get_hash((u8 *)TestA, (int)init_proc - (int)TestA))
         DispColStr("Warning: TestA has been changed!\n", 0x0C);
-    else DispColStr("Success!\n", 0x02);
+    else
+        DispColStr("Success!\n", 0x02);
     // 还原 PtDisp
     disp2 = PtDisp;
     PtDisp = t;
