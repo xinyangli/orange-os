@@ -1,6 +1,6 @@
 #include "global.h"
 #include "types.h"
-#include "protect.h"
+#include "x86def.h"
 
 int PtDisp;
 u8 gdt_ptr[6];

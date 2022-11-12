@@ -3,7 +3,7 @@
 
 #include "types.h"
 #include "proc.h"
-#include "protect.h"
+#include "x86def.h"
 
 #define GDT_SIZE 128
 #define IDT_SIZE 256

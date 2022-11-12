@@ -2,8 +2,9 @@
 #include "global.h"
 #include "proc.h"
 #include "types.h"
-#include "protect.h"
+#include "x86def.h"
 #include "handler.h"
+#include "asm.h"
 
 void relocate_gdt() {
     gain_gdt();
@@ -55,8 +56,8 @@ void init_idt() {
     // 设置 8259a
     set_8259a();
     // 设置 IMREG 开启键盘和定时器中断
-    out_byte(0x21, 0xFE); // 主 <= OCW1
-    out_byte(0xA1, 0xFF); // 从 <= OCW1
+    outb(0x21, 0xFE); // 主 <= OCW1
+    outb(0xA1, 0xFF); // 从 <= OCW1
     // 加载 idt 并开启中断
     apply_idt();
 }

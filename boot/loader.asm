@@ -54,39 +54,6 @@ start32:
         BOCHS_BREAK
         hlt
 
-; TODO: 使用C版本的memcpy
-; ================================================
-; 内存复制
-; void* memcpy(void *dst, void *src, size_t siz)
-
-global memcpy
-
-memcpy:
-    push ebp
-    mov ebp, esp
-    
-    push edi
-    push esi
-    push ecx
-    
-    mov edi, [ebp + 8]  ; dst
-    mov esi, [ebp + 12] ; src
-    mov ecx, [ebp + 16] ; size
-.cp:
-    cld
-    lodsb
-    stosb
-    loop .cp
-
-    mov eax, [ebp + 8]
-
-    pop ecx
-    pop esi
-    pop edi
-    pop ebp
-    ret
-
-
 [SECTION .data]
 align 32
 ; TODO: 确保GDT是对齐的
