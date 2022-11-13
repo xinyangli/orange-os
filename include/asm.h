@@ -24,6 +24,18 @@ static inline void lldt(u16 sel) {
     __asm__ __volatile__("lldtw %0" : : "r"(sel));
 }
 
+static inline void lidt(u8 ptr[6]) {
+    __asm__ ("lidt %0" :: "m"(*ptr));
+}
+
+static inline void cli() {
+    __asm__ __volatile__("cli\n\t");
+}
+
+static inline void sti() {
+    __asm__ __volatile__("sti\n\t");
+}
+
 static inline void iret() {
     __asm__ __volatile__("iretl");
 }

@@ -1,6 +1,6 @@
 INCLUDE := $(addprefix ../, $(INCLUDE))
 KERNEL_TARGET := $(addprefix ../, $(KERNEL_TARGET))
-CFLAGS += $(patsubst %, -I%, $(INCLUDE)) -s
+CFLAGS += $(patsubst %, -I%, $(INCLUDE))
 ASFLAGS += $(patsubst %, -I%, $(INCLUDE))
 ASM := kernel.o handlera.o kliba.o
 OBJ := page_alloc.o start.o handler.o klib.o global.o proc.o

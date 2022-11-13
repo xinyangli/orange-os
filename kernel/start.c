@@ -58,15 +58,10 @@ void init_idt() {
     // 设置 IMREG 开启键盘和定时器中断
     outb(0x21, 0xFE); // 主 <= OCW1
     outb(0xA1, 0xFF); // 从 <= OCW1
-    // 加载 idt 并开启中断
-    apply_idt();
+    lidt(idt_ptr);
 }
 
-void kernel_start() {
-    // 清屏
-    disp_clear();
-    // 显示超级马里奥
-    char SUPER_MARIO[1200] = {
+static char SUPER_MARIO[] = {
         32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 42, 42,
         42, 42, 42, 42, 42, 42, 10, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
         32, 32, 32, 32, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 10, 32,
@@ -130,8 +125,13 @@ void kernel_start() {
         35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
         35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 32, 32, 32, 32, 35,
         35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 0};
-    DispStr(SUPER_MARIO);
-    DispStr("\n");
+
+void kernel_start() {
+    // 清屏
+    disp_clear();
+    // 显示超级马里奥
+    dist_str(SUPER_MARIO);
+    dist_str("\n");
     // 设置 gdt
     relocate_gdt();
     add_ldt_desc();

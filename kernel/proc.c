@@ -8,9 +8,9 @@
 void TestA() {
     int i = 0;
     while (1) {
-        DispStr("A");
+        dist_str("A");
         disp_int(i++);
-        DispStr(".");
+        dist_str(".");
         delay(10000);
     }
 }
@@ -36,9 +36,9 @@ void inline load_proc_state(STACK_FRAME *regs) {
                        : "rm"(regs));
 }
 
-int init_proc() {
+__attribute__((noreturn)) int init_proc() {
     disp_clear();
-    DispStr("-----\"kernel_main\" begins-----\n");
+    dist_str("-----\"kernel_main\" begins-----\n");
 
     PROCESS *p_proc = proc_table;
     p_proc->ldt_sel = SELECTOR_LDT_FIRST;
@@ -59,9 +59,10 @@ int init_proc() {
     p_proc_ready = proc_table;
     restart();
 
+    sti();
+
     while (1)
         ;
-    return 1;
 }
 
 int check_testA() {
@@ -79,9 +80,9 @@ int check_testA() {
     PtDisp = disp2;
     // 检查 hash
     if (ori != get_hash((u8 *)TestA, (int)init_proc - (int)TestA))
-        DispColStr("Warning: TestA has been changed!\n", 0x0C);
+        dist_colstr("Warning: TestA has been changed!\n", 0x0C);
     else
-        DispColStr("Success!\n", 0x02);
+        dist_colstr("Success!\n", 0x02);
     // 还原 PtDisp
     disp2 = PtDisp;
     PtDisp = t;

@@ -15,14 +15,16 @@ all:
 	$(MAKE) -C kernel
 
 bochs: all .bochsrc
-	scripts/mkfd.sh
+	bash scripts/mkfd.sh
 	bochs -q
 
 qemu: all
-	qemu-system-i386 -drive file=a.img,format=raw,if=floppy -drive file=c.img,format=raw,index=1 -boot c -display curses -serial mon:stdio
+	bash scripts/mkfd.sh
+	qemu-system-i386 -drive file=a.img,format=raw,if=floppy -drive file=c.img,format=raw -boot a -serial mon:stdio
 
 qemu-dbg: all
-	qemu-system-i386 -s -S -drive file=a.img,format=raw,if=floppy -drive file=c.img,format=raw -boot a -display curses -serial mon:stdio
+	bash scripts/mkfd.sh
+	qemu-system-i386 -s -S -drive file=a.img,format=raw,if=floppy -drive file=c.img,format=raw -boot a -serial mon:stdio
 
 .phony: clean
 

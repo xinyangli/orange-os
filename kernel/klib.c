@@ -41,7 +41,7 @@ int disp_upline() {
 	return 0;
 }
 
-void DispStr(char *s) {
+void dist_str(char *s) {
 	u8* gs = (u8 *)DISP_BASE;
 	while(*s != 0) {
 		if(DISP_BASE + PtDisp == DISP_END) {
@@ -59,7 +59,7 @@ void DispStr(char *s) {
 	}
 }
 
-void DispColStr(char *s, u8 col) {
+void dist_colstr(char *s, u8 col) {
 	u8* gs = (u8 *)DISP_BASE;
 	while(*s != 0) {
 		if(DISP_BASE + PtDisp == DISP_END) {
@@ -91,5 +91,5 @@ void disp_int(int x) {
 		s[i] = s[n - i - 1];
 		s[n - i - 1] = t;
 	}
-	DispStr(s);
+	dist_str(s);
 }
