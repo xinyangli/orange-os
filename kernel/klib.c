@@ -1,16 +1,5 @@
 #include "klib.h"
 
-int set_Ptdisp(int pos) {
-    PtDisp = pos;
-    return pos;
-}
-
-int disp_clear() {
-    set_Ptdisp(0);
-    memset((void *)0xB8000, 0, 0x8000);
-    return 0;
-}
-
 void delay(int time)
 {
 	int i, j, k;
@@ -29,6 +18,63 @@ u32 get_hash(u8 *s, int len) {
 		res = res % 998244353;
 	}
 	return res;
+}
+
+#define DISP_BASE 0xB8000
+#define DISP_END 0xB8FA0
+#define DISP_SIZE 0xFA0
+
+int set_Ptdisp(int pos) {
+    PtDisp = pos;
+    return pos;
+}
+
+int disp_clear() {
+    set_Ptdisp(0);
+    memset((void *)DISP_BASE, 0, 0x8000);
+    return 0;
+}
+
+int disp_upline() {
+	memcpy((void *)DISP_BASE, (void *)(DISP_BASE + 160), DISP_SIZE - 160);
+	memset((void *)(DISP_END - 160), 0, 160);
+	return 0;
+}
+
+void DispStr(char *s) {
+	u8* gs = (u8 *)DISP_BASE;
+	while(*s != 0) {
+		if(DISP_BASE + PtDisp == DISP_END) {
+			disp_upline();
+			set_Ptdisp(PtDisp - 160);
+		}
+		if(*s == '\n') {
+			PtDisp = (PtDisp / 160 + 1) * 160;
+			s++;
+			continue;
+		}
+		gs[PtDisp++] = *s;
+		gs[PtDisp++] = 0x0F;
+		s++;
+	}
+}
+
+void DispColStr(char *s, u8 col) {
+	u8* gs = (u8 *)DISP_BASE;
+	while(*s != 0) {
+		if(DISP_BASE + PtDisp == DISP_END) {
+			disp_upline();
+			set_Ptdisp(PtDisp - 160);
+		}
+		if(*s == '\n') {
+			PtDisp = (PtDisp / 160 + 1) * 160;
+			s++;
+			continue;
+		}
+		gs[PtDisp++] = *s;
+		gs[PtDisp++] = col;
+		s++;
+	}
 }
 
 void disp_int(int x) {
