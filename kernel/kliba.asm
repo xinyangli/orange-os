@@ -13,7 +13,7 @@ extern PtDisp
 ; 显示字符串
 ; void DispStr(char *s)
 
-
+%if 0
 DispStr:
 
     push ebp
@@ -58,12 +58,13 @@ DispStr:
     pop esi
     pop ebp
     ret
+%endif
 
 ; ================================================
 ; 显示指定颜色的字符串
 ; void DispColStr(char *s, u8 col)
 
-
+%if 0
 DispColStr:
 
     push ebp
@@ -108,6 +109,7 @@ DispColStr:
     pop esi
     pop ebp
     ret
+%endif
 
 ; ================================================
 
