@@ -30,8 +30,9 @@ static void memcpy(void *dst, const void *src, size_t siz) {
 
 static void memset(void *dst, u8 c, size_t siz) {
     // TODO: Optimize performance
-    for (int i = 0; i < siz; i++) {
-        *(u8 *)dst = c;
+    u8 *p_dst = dst;
+    for (int i = 0; i < siz; i++, dst++) {
+        *p_dst = c;
     }
 }
 

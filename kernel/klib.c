@@ -21,8 +21,8 @@ u32 get_hash(u8 *s, int len) {
 }
 
 #define DISP_BASE 0xB8000
-#define DISP_END 0xA0000
-#define DISP_SIZE 0x8000
+#define DISP_END 0xB8FA0
+#define DISP_SIZE 0xFA0
 
 int set_Ptdisp(int pos) {
     PtDisp = pos;
