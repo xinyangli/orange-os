@@ -1,4 +1,5 @@
 #include "global.h"
+#include "proc.h"
 #include "types.h"
 #include "x86def.h"
 
@@ -14,8 +15,10 @@ u32 old_esp;
 TSS tss;
 PROCESS *p_proc_ready;
 
-PROCESS proc_table[1];
-char task_stack[1];
+PROCESS proc_table[NR_TASKS];
+char task_stack[STACK_SIZE_TOTAL];
+
+u32 ticks;
 
 void init_gate(GATE *p_gate, u8 type, void *handler, u8 privilege) {
     u32 base = (u32)handler;

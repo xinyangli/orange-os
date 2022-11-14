@@ -18,6 +18,8 @@
 #define RPL_TASK 1
 #define RPL_USER 3
 
+extern void *StackTop; /* Kernel Stack */
+
 extern int PtDisp;
 extern u8 gdt_ptr[6];
 extern DESCRIPTOR gdt[GDT_SIZE];
@@ -33,6 +35,9 @@ extern PROCESS proc_table[];
 extern char task_stack[];
 
 extern u32 old_esp;
+
+// For get_ticks
+extern u32 ticks;
 
 void init_gate(GATE *p_gate, u8 type, void *handler, u8 privilege);
 void init_descriptor(DESCRIPTOR *p_desc, u32 base, u32 limit, u16 attribute);

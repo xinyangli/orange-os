@@ -46,9 +46,14 @@ typedef struct {
 #define STACK_SIZE_TOTAL STACK_SIZE_TESTA
 
 void load_proc_state(STACK_FRAME *);
+void save_proc_state();
+
+void to_kstack();
 
 void TestA();
 int init_proc();
 int check_testA();
+
+void schedule(void);
 
 #endif // ORANGE_OS_PROC_H
