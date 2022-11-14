@@ -10,11 +10,38 @@ typedef void (*ptr_handler_t)(void);
 HANDLER_WRAPPER(
     clock, INT_VECTOR_IRQ_CLOCK,
     ticks++;
-    if (k_reenter != 0) {
-        // re-entered interrupt
-        return;
+    for (i = 0; i < NR_TASKS; i++){
+        if (proc_table[i].q==2){
+            proc_table[i].wait++;
+        }
+      }
+    p_proc_ready->time--;
+    // 输出队列信息
+	int i=0;
+	int j=0;
+    char *nums[] = {"1", "2", "3"};
+    if (ticks%8==0){
+        for (j=0;j<3;j++){
+            disp_str("q");
+            disp_str(nums[j]);
+            disp_str(":");
+            for(i=0;i<NR_TASKS;i++){
+                if (proc_table[i].q==j){
+                    disp_str("<");
+                    disp_int(i);
+                    disp_str(",");
+                    disp_int(proc_table[i].pos);
+                    disp_str(">");
+                }
+            }
+        }
+        while (disp_pos%80!=0){
+            disp_str(" ");
+        }
     }
-    disp_int(ticks);
+    if (k_reenter != 0) {
+		return;
+	}
     schedule();)
 
 ptr_handler_t handlers[IDT_SIZE] = {
