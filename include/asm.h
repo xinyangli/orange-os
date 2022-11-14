@@ -25,15 +25,15 @@ static inline void lldt(u16 sel) {
 }
 
 static inline void lidt(u8 ptr[6]) {
-    __asm__ ("lidt %0" :: "m"(*ptr));
+    __asm__("lidt %0" ::"m"(*ptr));
 }
 
 static inline void cli() {
-    __asm__ __volatile__("cli\n\t");
+    __asm__ __volatile__("cli\n\t" ::: "cc");
 }
 
 static inline void sti() {
-    __asm__ __volatile__("sti\n\t");
+    __asm__ __volatile__("sti\n\t" ::: "cc");
 }
 
 static inline void iret() {

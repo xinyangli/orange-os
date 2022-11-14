@@ -15,26 +15,8 @@ void TestA() {
     }
 }
 
-/* Implemnet restart using inline asm,
- * so we don't need to declare proc_t in asm*/
-__attribute__((noreturn)) void restart() {
-    lldt(p_proc_ready->ldt_sel);
-    tss.esp0 = (u32)p_proc_ready + sizeof(STACK_FRAME);
-    load_proc_state(&p_proc_ready->regs);
-    iret();
-}
-
-void inline load_proc_state(STACK_FRAME *regs) {
-    __asm__ __inline__("mov %0, %%esp\n"
-                       "pop %%gs\n"
-                       "pop %%fs\n"
-                       "pop %%es\n"
-                       "pop %%ds\n"
-                       "popal\n"
-                       "add $4, %%esp\n"
-                       :
-                       : "rm"(regs));
-}
+/* Load proc state from STACK_FRAME */
+// TODO: Change argument type to PROCESS*
 
 __attribute__((noreturn)) int init_proc() {
     disp_clear();
@@ -57,9 +39,10 @@ __attribute__((noreturn)) int init_proc() {
     p_proc->regs.eflags = 0x1202; // IF=1, IOPL=1, bit 2 is always 1.
 
     p_proc_ready = proc_table;
-    restart();
-
-    sti();
+    tss.esp0 = (u32)p_proc_ready + sizeof(STACK_FRAME);
+    lldt(p_proc_ready->ldt_sel);
+    load_proc_state(&p_proc_ready->regs);
+    iret(); // Goto first stack point by p_proc_ready
 
     while (1)
         ;
@@ -87,4 +70,8 @@ int check_testA() {
     disp2 = PtDisp;
     PtDisp = t;
     return 0;
+}
+
+void schedule(void) {
+    return;
 }
