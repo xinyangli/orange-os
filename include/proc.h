@@ -37,13 +37,20 @@ typedef struct {
     char p_name[16];           /* name of the process */
 } PROCESS;
 
+typedef struct {
+    u32 init_eip;
+    u32 stack_size;
+} TASK;
+
 /* Number of tasks */
-#define NR_TASKS 1
+#define NR_TASKS 3
 
 /* stacks of tasks */
 #define STACK_SIZE_TESTA 0x8000
+#define STACK_SIZE_TESTB 0x4000
+#define STACK_SIZE_TESTC 0x2000
 
-#define STACK_SIZE_TOTAL STACK_SIZE_TESTA
+#define STACK_SIZE_TOTAL 0xE000
 
 void load_proc_state(STACK_FRAME *);
 void save_proc_state();
@@ -51,6 +58,8 @@ void save_proc_state();
 void to_kstack();
 
 void TestA();
+void TestB();
+void TestC();
 int init_proc();
 int check_testA();
 
