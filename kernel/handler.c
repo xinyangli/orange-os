@@ -10,12 +10,11 @@ typedef void (*ptr_handler_t)(void);
 HANDLER_WRAPPER(
     clock, INT_VECTOR_IRQ_CLOCK,
     ticks++;
-    if (k_reenter != 0) {
+    if (k_reenter == 0) {
         // re-entered interrupt
-        return;
-    }
-    disp_int(ticks);
-    schedule();)
+        disp_int(ticks);
+        schedule();
+    })
 
 ptr_handler_t handlers[IDT_SIZE] = {
     [INT_VECTOR_IRQ_CLOCK] = __handler_clock,

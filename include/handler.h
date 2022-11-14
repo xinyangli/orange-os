@@ -59,7 +59,7 @@ typedef void (*ptr_handler_t)(void);
         save_proc_state();                                                     \
         ++k_reenter;                                                           \
         if (k_reenter == 0)                                                    \
-            __asm__ __volatile__("mov %%esp, %0\n" : : "m"(StackTop));         \
+            __asm__ __volatile__("mov %0, %%esp\n" : : "m"(StackTop));         \
         outb(PIC1_COMMAND, PIC_EOI);                                           \
         sti();                                                                 \
         {__BODY__};                                                            \

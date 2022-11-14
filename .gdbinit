@@ -1,4 +1,7 @@
 target remote localhost:1234
 layout asm
 symbol-file okernel
-break kernel.asm:61
+directory kernel
+
+break 0x1203bc
+break __handler_clock
