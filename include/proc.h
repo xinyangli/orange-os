@@ -45,14 +45,38 @@ typedef struct {
 
 #define STACK_SIZE_TOTAL STACK_SIZE_TESTA
 
-void load_proc_state(STACK_FRAME *);
-void save_proc_state();
 
 void to_kstack();
 
 void TestA();
 int init_proc();
 int check_testA();
+
+static void inline load_proc_state(STACK_FRAME *p_frame) {
+    __asm__ __volatile__("mov %0, %%esp\n"
+                       "pop %%gs\n"
+                       "pop %%fs\n"
+                       "pop %%es\n"
+                       "pop %%ds\n"
+                       "popal\n"
+                       "add $4, %%esp\n"
+                       :
+                       : "rm"(p_frame)
+                       : "memory");
+}
+
+
+static void inline save_proc_state() {
+    __asm__ __volatile__("sub $4, %%esp\n"
+                         "pushal\n"
+                         "pushl %%ds\n"
+                         "pushl %%es\n"
+                         "pushl %%fs\n"
+                         "pushl %%gs\n"
+                         :
+                         :
+                         : "memory");
+}
 
 void schedule(void);
 
