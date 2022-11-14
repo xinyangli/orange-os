@@ -28,13 +28,13 @@
 
 #define INT_VECTOR_SYS_CALL 0x90
 
-#define PIC1		0x20		/* IO base address for master PIC */
-#define PIC2		0xA0		/* IO base address for slave PIC */
-#define PIC1_COMMAND	PIC1
-#define PIC1_DATA	(PIC1+1)
-#define PIC2_COMMAND	PIC2
-#define PIC2_DATA	(PIC2+1)
-#define PIC_EOI		0x20
+#define PIC1 0x20 /* IO base address for master PIC */
+#define PIC2 0xA0 /* IO base address for slave PIC */
+#define PIC1_COMMAND PIC1
+#define PIC1_DATA (PIC1 + 1)
+#define PIC2_COMMAND PIC2
+#define PIC2_DATA (PIC2 + 1)
+#define PIC_EOI 0x20
 
 void empty_handler();
 void clock_handler();
@@ -52,13 +52,14 @@ static void inline unmask_hwint() {
 
 typedef void (*ptr_handler_t)(void);
 
+// TODO: mask correspoding 8259A when handling interrupt
 // For re-entered interrupt, state is saved onto kernel stack
-#define HANDLER_WRAPPER(__NAME__, __NUMBER__, __BODY__)                                    \
+#define HANDLER_WRAPPER(__NAME__, __NUMBER__, __BODY__)                        \
     void __handler_##__NAME__(void) {                                          \
-        BOCHS_BREAK();\
         save_proc_state();                                                     \
         ++k_reenter;                                                           \
-        if (k_reenter == 0) to_kstack();                                       \
+        if (k_reenter == 0)                                                    \
+            __asm__ __volatile__("mov %%esp, %0\n" : : "m"(StackTop));         \
         outb(PIC1_COMMAND, PIC_EOI);                                           \
         sti();                                                                 \
         {__BODY__};                                                            \
@@ -71,6 +72,5 @@ typedef void (*ptr_handler_t)(void);
         load_proc_state(&p_proc_ready->regs);                                  \
         iret();                                                                \
     }
-
 
 #endif // ORANGE_OS_HANDLER_H
