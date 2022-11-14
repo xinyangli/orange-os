@@ -9,10 +9,11 @@ typedef void (*ptr_handler_t)(void);
 
 HANDLER_WRAPPER(
     clock, INT_VECTOR_IRQ_CLOCK,
+    ticks++;
     if (k_reenter != 0) {
         // re-entered interrupt
         return;
-    } ticks++;
+    }
     disp_int(ticks);
     schedule();)
 
