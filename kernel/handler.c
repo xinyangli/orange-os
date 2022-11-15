@@ -10,25 +10,31 @@ typedef void (*ptr_handler_t)(void);
 HANDLER_WRAPPER(
     clock, INT_VECTOR_IRQ_CLOCK,
     ticks++;
-    if (k_reenter != 0) {
-        // re-entered interrupt
-        return;
+    if (k_reenter == 0) {
+        disp_int(ticks);
+        schedule();
     }
-    disp_int(ticks);
-    schedule();)
+)
 
-ptr_handler_t handlers[IDT_SIZE] = {
-    [INT_VECTOR_IRQ_CLOCK] = __handler_clock,
-};
+ptr_handler_t handlers[IDT_SIZE];
+
+void init_handlers() {
+    for(int i = 0; i < IDT_SIZE; i++) handlers[i] = empty_handler;
+    handlers[0x20] = &&__clock;
+    return;
+    // Handlers
+__clock:
+    __handler_clock();
+}
 
 void init_idt() {
+    init_handlers();
     // 初始化中断重入计数器
     k_reenter = -1;
     // 初始化中断门
     int i;
     for (i = 0; i < IDT_SIZE; i++)
-        init_gate(&idt[i], DA_386IGate,
-                  handlers[i] != 0 ? handlers[i] : empty_handler, 0);
+        init_gate(&idt[i], DA_386IGate, handlers[i], 0);
     // 设置 idt_ptr
     u16 *p_idt_limit = (u16 *)(&idt_ptr[0]);
     u32 *p_idt_base = (u32 *)(&idt_ptr[2]);

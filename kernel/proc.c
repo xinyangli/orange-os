@@ -8,9 +8,9 @@
 void TestA() {
     int i = 0;
     while (1) {
-        dist_str("A");
+        disp_str("A");
         disp_int(i++);
-        dist_str(".");
+        disp_str(".");
         delay(5);
     }
 }
@@ -18,9 +18,9 @@ void TestA() {
 void TestB() {
     int i = 1000;
     while (1) {
-        dist_str("B");
+        disp_str("B");
         disp_int(i++);
-        dist_str(".");
+        disp_str(".");
         delay(5);
     }
 }
@@ -28,16 +28,16 @@ void TestB() {
 void TestC() {
     int i = 100000;
     while(1) {
-        dist_str("C");
+        disp_str("C");
         disp_int(i++);
-        dist_str(".");
+        disp_str(".");
         delay(5);
     }
 }
 
 __attribute__((noreturn)) int init_proc() {
     disp_clear();
-    dist_str("-----\"kernel_main\" begins-----\n");
+    disp_str("-----\"kernel_main\" begins-----\n");
 
     PROCESS *p_proc = proc_table;
     TASK *p_task = init_task;
@@ -66,6 +66,7 @@ __attribute__((noreturn)) int init_proc() {
     tss.esp0 = (u32)p_proc_ready + sizeof(STACK_FRAME);
     lldt(p_proc_ready->ldt_sel);
     load_proc_state(&p_proc_ready->regs);
+    
     iret(); // Goto first stack point by p_proc_ready
 
     while (1)
@@ -87,9 +88,9 @@ int check_testA() {
     PtDisp = disp2;
     // 检查 hash
     if (ori != get_hash((u8 *)TestA, (int)init_proc - (int)TestA))
-        dist_colstr("Warning: TestA has been changed!\n", 0x0C);
+        disp_colstr("Warning: TestA has been changed!\n", 0x0C);
     else
-        dist_colstr("Success!\n", 0x02);
+        disp_colstr("Success!\n", 0x02);
     // 还原 PtDisp
     disp2 = PtDisp;
     PtDisp = t;

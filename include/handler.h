@@ -55,11 +55,11 @@ typedef void (*ptr_handler_t)(void);
 // TODO: mask correspoding 8259A when handling interrupt
 // For re-entered interrupt, state is saved onto kernel stack
 #define HANDLER_WRAPPER(__NAME__, __NUMBER__, __BODY__)                        \
-    void __handler_##__NAME__(void) {                                          \
+    inline void __handler_##__NAME__(void) {                                          \
         save_proc_state();                                                     \
         ++k_reenter;                                                           \
         if (k_reenter == 0)                                                    \
-            __asm__ __volatile__("mov %%esp, %0\n" : : "m"(StackTop));         \
+            __asm__ __volatile__("mov $%0, %%esp\n" : : "m"(StackTop));         \
         outb(PIC1_COMMAND, PIC_EOI);                                           \
         sti();                                                                 \
         {__BODY__};                                                            \
