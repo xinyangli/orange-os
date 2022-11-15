@@ -6,6 +6,10 @@
 #include "asm.h"
 #include "syscall.h"
 
+#define QUEUE_LEVEL 3
+int queue_slice[] = {10, 20, 30};
+int queue_len[] = {NR_TASKS, 0, 0};
+
 void TestA() {
     while (1) {
         BOCHS_BREAK();
@@ -59,6 +63,10 @@ __attribute__((noreturn)) int init_proc() {
         p_proc->regs.gs = (SELECTOR_KERNEL_GS & SA_RPL_MASK) | RPL_TASK;
         p_proc->regs.eip = p_task->init_eip;
         p_proc->regs.esp = stack_top;
+        p_proc->time = 10;
+        p_proc->q = 0;
+        p_proc->pos = i;
+        p_proc->wait = 0;
         stack_top -= p_task->stack_size;
         p_proc->regs.eflags = 0x1202; // IF=1, IOPL=1, bit 2 is always 1.
     }
@@ -94,8 +102,43 @@ int check_testA() {
     return 0;
 }
 
-void schedule(void) {
-    return;
+void schedule() {
+    PROCESS *cur = p_proc_ready;
+    int i = 0;
+    int j = 0;
+    if(cur->time <= 0) {
+    queue_len[cur->q]--; // 弹出当前进程
+
+    for (i = 0; i < NR_TASKS; i++)
+      if (proc_table[i].q == cur->q)
+        proc_table[i].pos--;
+
+    cur->q += (cur->q == 2 ? 0 : 1); // 将当前进程重新加入队列
+
+    cur->time = queue_slice[cur->q];
+    cur->pos = queue_len[cur->q];
+    queue_len[cur->q]++;
+    int i_next_proc = 0;    // 选出优先级最高的队列
+    int min_prio = 1000;
+    for (i = 0; i < NR_TASKS; i++) {
+        int prio = proc_table[i].pos;
+        for (j = 0; j < proc_table[i].q; j++) {
+            prio += queue_len[j];
+        }
+        if (min_prio > prio) {
+        min_prio = prio; i_next_proc = i;
+        }
+    }
+    p_proc_ready = proc_table + i_next_proc;
+    } else if (cur->q>0 && queue_len[0]>0){// 需要发生抢占
+        for(i=0; i<NR_TASKS;i++){
+            if (proc_table[i].q == cur->q)
+                proc_table[i].pos--;
+            if(proc_table[i].q==0 && proc_table[i].pos==0) // 选出抢占的进程
+                p_proc_ready=proc_table+i;
+            }
+            cur->pos=queue_len[cur->q]-1; //放到队尾
+    }
 }
 
 void restart(void) {

@@ -33,6 +33,11 @@ typedef struct {
     u16 ldt_sel;               /* selector in gdt giving ldt base and limit*/
     DESCRIPTOR ldts[LDT_SIZE]; /* local descriptors for code and data */
                                /* 2 is LDT_SIZE - avoid include x86def.h */
+    int q;  // 记录当前在哪个队列
+    int pos; // 记录在队列里的排序
+    int time; // 记录当前还剩下多少时间片
+    int wait;
+    
     u32 pid;                   /* process id passed in from MM */
     char p_name[16];           /* name of the process */
 } PROCESS;
