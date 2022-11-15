@@ -98,5 +98,8 @@ int check_testA() {
 }
 
 void schedule(void) {
+    static int now = 0;
+    now = (now + 1) % NR_TASKS;
+    p_proc_ready = proc_table + now;
     return;
 }
