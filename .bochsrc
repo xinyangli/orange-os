@@ -11,6 +11,7 @@ romimage: file=/usr/local/share/bochs/BIOS-bochs-latest
 vgaromimage: file=/usr/local/share/bochs/VGABIOS-lgpl-latest
 
 # debug: action=ignore, harddrv=report
+# debug: action=ignore, pic=report
 floppya: 1_44=a.img, status=inserted
 ata0-master: type=disk, path="c.img", cylinders=20, heads=16, spt=63
 
