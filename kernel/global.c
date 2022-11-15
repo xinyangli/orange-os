@@ -2,6 +2,7 @@
 #include "proc.h"
 #include "types.h"
 #include "x86def.h"
+#include "syscall.h"
 
 int PtDisp;
 u8 gdt_ptr[6];
@@ -9,8 +10,10 @@ DESCRIPTOR gdt[GDT_SIZE];
 u8 idt_ptr[6];
 GATE idt[IDT_SIZE];
 
-u32 k_reenter;
+u32 k_reenter = -1;
 u32 old_esp;
+
+u32 ticks;
 
 TSS tss;
 PROCESS *p_proc_ready;
@@ -24,7 +27,9 @@ TASK init_task[NR_TASKS] = {
     {(u32)TestC, STACK_SIZE_TESTC}
 };
 
-u32 ticks;
+void *syscall_table[] = {
+    sys_get_ticks,
+};
 
 void init_gate(GATE *p_gate, u8 type, void *handler, u8 privilege) {
     u32 base = (u32)handler;

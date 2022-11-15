@@ -1,5 +1,6 @@
 #ifndef ORANGE_OS_PROC_H
 #define ORANGE_OS_PROC_H
+#include "asm.h"
 #include "types.h"
 #include "x86def.h"
 
@@ -20,7 +21,6 @@ typedef struct {
     u32 ecx;
     u32 eax;
 	/* popad end */
-    u32 retaddr;
     u32 eip;
     u32 cs;
     u32 eflags;
@@ -68,7 +68,6 @@ static void inline load_proc_state(STACK_FRAME *p_frame) {
                        "pop %%es\n"
                        "pop %%ds\n"
                        "popal\n"
-                       "add $4, %%esp\n"
                        :
                        : "rm"(p_frame)
                        : "memory");
@@ -76,8 +75,7 @@ static void inline load_proc_state(STACK_FRAME *p_frame) {
 
 
 static void inline save_proc_state() {
-    __asm__ __volatile__("sub $4, %%esp\n"
-                         "pushal\n"
+    __asm__ __volatile__("pushal\n"
                          "pushl %%ds\n"
                          "pushl %%es\n"
                          "pushl %%fs\n"
@@ -88,5 +86,7 @@ static void inline save_proc_state() {
 }
 
 void schedule(void);
+
+void restart(void);
 
 #endif // ORANGE_OS_PROC_H

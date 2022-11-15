@@ -1,5 +1,6 @@
 #ifndef ORANGE_OS_HANDLER_H
 #define ORANGE_OS_HANDLER_H
+#include "global.h"
 #include "x86def.h"
 #include "asm.h"
 
@@ -26,7 +27,7 @@
 
 #define INT_VECTOR_IRQ_RTCLOCK 0x28
 
-#define INT_VECTOR_SYS_CALL 0x90
+#define INT_VECTOR_SYSCALL 0x90
 
 #define PIC1 0x20 /* IO base address for master PIC */
 #define PIC2 0xA0 /* IO base address for slave PIC */
@@ -36,41 +37,15 @@
 #define PIC2_DATA (PIC2 + 1)
 #define PIC_EOI 0x20
 
-void empty_handler();
-void clock_handler();
-void KeyBoardHandler();
+typedef void (__handler_pic0)(void);
+typedef void (__handler_pic1)(void);
+// type: pic0, pic1, syscall
+#define __glue2(x,y) x##y
+#define __glue(x,y) __glue2(x,y)
+
+extern void *handlers[IDT_SIZE];
 void init_idt();
 void set_8259a();
 
-static void inline mask_hwint() {
-    ;
-}
-
-static void inline unmask_hwint() {
-    ;
-}
-
-typedef void (*ptr_handler_t)(void);
-
-// TODO: mask correspoding 8259A when handling interrupt
-// For re-entered interrupt, state is saved onto kernel stack
-#define HANDLER_WRAPPER(__NAME__, __NUMBER__, __BODY__)                        \
-    void __handler_##__NAME__(void) {                                          \
-        save_proc_state();                                                     \
-        ++k_reenter;                                                           \
-        if (k_reenter == 0)                                                    \
-            __asm__ __volatile__("mov %%esp, %0\n" : : "m"(StackTop));         \
-        outb(PIC1_COMMAND, PIC_EOI);                                           \
-        sti();                                                                 \
-        {__BODY__};                                                            \
-        cli();                                                                 \
-        if (k_reenter == 0) {                                                  \
-            lldt(p_proc_ready->ldt_sel);                                       \
-            tss.esp0 = (u32)p_proc_ready + sizeof(STACK_FRAME);                \
-        }                                                                      \
-        --k_reenter;                                                           \
-        load_proc_state(&p_proc_ready->regs);                                  \
-        iret();                                                                \
-    }
 
 #endif // ORANGE_OS_HANDLER_H

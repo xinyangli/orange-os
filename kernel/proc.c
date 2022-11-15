@@ -4,14 +4,15 @@
 #include "proc.h"
 #include "global.h"
 #include "asm.h"
+#include "syscall.h"
 
 void TestA() {
-    int i = 0;
     while (1) {
+        BOCHS_BREAK();
         dist_str("A");
-        disp_int(i++);
         dist_str(".");
-        delay(5);
+        u32 t = get_ticks();
+        while(get_ticks() - t < 1) ;
     }
 }
 
@@ -63,10 +64,7 @@ __attribute__((noreturn)) int init_proc() {
     }
 
     p_proc_ready = proc_table;
-    tss.esp0 = (u32)p_proc_ready + sizeof(STACK_FRAME);
-    lldt(p_proc_ready->ldt_sel);
-    load_proc_state(&p_proc_ready->regs);
-    iret(); // Goto first stack point by p_proc_ready
+    restart();
 
     while (1)
         ;
@@ -98,4 +96,32 @@ int check_testA() {
 
 void schedule(void) {
     return;
+}
+
+void restart(void) {
+    tss.esp0 = (u32)p_proc_ready + sizeof(STACK_FRAME);
+    lldt(p_proc_ready->ldt_sel);
+    __asm__ __volatile__("mov %0, %%esp\n"
+                       "pop %%gs\n"
+                       "pop %%fs\n"
+                       "pop %%es\n"
+                       "pop %%ds\n"
+                       "popal\n"
+                       :
+                       : "rm"(p_proc_ready)
+                       : "memory");
+    iret();
+}
+
+void restart_reenter(void) {
+    __asm__ __volatile__("mov %0, %%esp\n"
+                       "pop %%gs\n"
+                       "pop %%fs\n"
+                       "pop %%es\n"
+                       "pop %%ds\n"
+                       "popal\n"
+                       :
+                       : "rm"(p_proc_ready)
+                       : "memory");
+    iret();
 }

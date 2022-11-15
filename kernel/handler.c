@@ -5,30 +5,29 @@
 #include "asm.h"
 #include "proc.h"
 
-typedef void (*ptr_handler_t)(void);
+// Default irq handler
+void irqreport(void) {
+    ;
+}
 
-HANDLER_WRAPPER(
-    clock, INT_VECTOR_IRQ_CLOCK,
+// clock handler
+void irqclock(void) {
     ticks++;
-    if (k_reenter != 0) {
+    if (k_reenter == 0) {
         // re-entered interrupt
-        return;
+        dist_colstr("DING", 0x02);
+        schedule();
     }
-    disp_int(ticks);
-    schedule();)
-
-ptr_handler_t handlers[IDT_SIZE] = {
-    [INT_VECTOR_IRQ_CLOCK] = __handler_clock,
-};
+}
 
 void init_idt() {
-    // 初始化中断重入计数器
-    k_reenter = -1;
     // 初始化中断门
-    int i;
-    for (i = 0; i < IDT_SIZE; i++)
-        init_gate(&idt[i], DA_386IGate,
-                  handlers[i] != 0 ? handlers[i] : empty_handler, 0);
+    for (int i = 0; i < IDT_SIZE; i++) {
+        if (i == INT_VECTOR_SYSCALL)
+            init_gate(&idt[i], DA_386IGate, handlers[i], 1);
+        else
+            init_gate(&idt[i], DA_386IGate, handlers[i], 0);
+    }
     // 设置 idt_ptr
     u16 *p_idt_limit = (u16 *)(&idt_ptr[0]);
     u32 *p_idt_base = (u32 *)(&idt_ptr[2]);
