@@ -2,8 +2,8 @@
 #define ORANGE_OS_GLOBAL_H
 
 #include "types.h"
-#include "proc.h"
 #include "x86def.h"
+#include "proc.h"
 
 #define GDT_SIZE 128
 #define IDT_SIZE 256
