@@ -93,3 +93,20 @@ void disp_int(int x) {
 	}
 	disp_str(s);
 }
+
+void disp_colint(int x, u8 col) {
+	static char s[30];
+	int n = 0;
+	while(x) {
+		s[n++] = (x % 10) + 48;
+		x /= 10;
+	}
+	if(n == 0) s[n++] = 48;
+	s[n] = 0;
+	for(int i = 0; i < n >> 1; i++) {
+		char t = s[i];
+		s[i] = s[n - i - 1];
+		s[n - i - 1] = t;
+	}
+	disp_colstr(s, col);
+}

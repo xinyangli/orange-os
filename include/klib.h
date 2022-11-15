@@ -17,6 +17,7 @@ void delay();
 
 u32 get_hash(u8 *s, int len);
 void disp_int(int x);
+void disp_colint(int x, u8 col);
 
 /* ====== Memory and String operations ====== */
 /* Warning: No overlapping memory */
