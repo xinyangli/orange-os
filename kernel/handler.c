@@ -11,24 +11,24 @@ HANDLER_WRAPPER(
     clock, INT_VECTOR_IRQ_CLOCK,
     ticks++;
     if (k_reenter == 0) {
-        disp_int(ticks);
+        disp_colint(ticks, 0x0C);
         schedule();
     }
 )
 
 ptr_handler_t handlers[IDT_SIZE];
 
-void init_handlers() {
+void init_handlers(int exit_flag) {
     for(int i = 0; i < IDT_SIZE; i++) handlers[i] = empty_handler;
     handlers[0x20] = &&__clock;
-    return;
+    if(exit_flag) return;
     // Handlers
 __clock:
     __handler_clock();
 }
 
 void init_idt() {
-    init_handlers();
+    init_handlers(1);
     // 初始化中断重入计数器
     k_reenter = -1;
     // 初始化中断门
