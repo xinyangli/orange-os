@@ -35,6 +35,8 @@ extern PROCESS proc_table[];
 extern char task_stack[];
 extern TASK init_task[];
 
+extern void *syscall_table[];
+
 extern u32 old_esp;
 
 // For get_ticks

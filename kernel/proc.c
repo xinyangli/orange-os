@@ -4,14 +4,15 @@
 #include "proc.h"
 #include "global.h"
 #include "asm.h"
+#include "syscall.h"
 
 void TestA() {
-    int i = 0;
     while (1) {
+        BOCHS_BREAK();
         dist_str("A");
-        disp_int(i++);
         dist_str(".");
-        delay(5);
+        u32 t = get_ticks();
+        while(get_ticks() - t < 1) ;
     }
 }
 

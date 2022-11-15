@@ -27,7 +27,7 @@
 
 #define INT_VECTOR_IRQ_RTCLOCK 0x28
 
-#define INT_VECTOR_SYS_CALL 0x90
+#define INT_VECTOR_SYSCALL 0x90
 
 #define PIC1 0x20 /* IO base address for master PIC */
 #define PIC2 0xA0 /* IO base address for slave PIC */

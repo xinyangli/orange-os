@@ -1,11 +1,13 @@
 
-PIC1 equ 0x20
-PIC2 equ 0xA0 ; IO base address for slave PIC
-PIC1_COMMAND equ PIC1
-PIC1_DATA equ (PIC1 + 1)
-PIC2_COMMAND equ PIC2
-PIC2_DATA equ (PIC2 + 1)
-PIC_EOI equ 0x20
+%assign PIC1 0x20
+%assign PIC2 0xA0 ; IO base address for slave PIC
+%assign PIC1_COMMAND PIC1
+%assign PIC1_DATA (PIC1 + 1)
+%assign PIC2_COMMAND PIC2
+%assign PIC2_DATA (PIC2 + 1)
+%assign PIC_EOI 0x20
+
+%assign INT_VECTOR_SYSCALL 0x90
 
 IDT_SIZE equ 256
 
@@ -31,6 +33,13 @@ extern restart_reenter
     jne %%.reenter
     mov esp, StackTop
     %%.reenter:
+%endmacro
+
+%macro restart_entry 0
+    dec dword [k_reenter]
+    cmp dword [k_reenter], -1
+    jne restart_reenter
+    jmp restart
 %endmacro
 
 ; arguments:
@@ -73,20 +82,28 @@ global __handler_%[i_idt]
     out PIC1_DATA, al 
 %endif
     
-    dec dword [k_reenter]
-    cmp dword [k_reenter], -1
-    jne restart_reenter
-    jmp restart
+    restart_entry
 %endmacro
 
-; arguments:
-; %1: system call name, e.g sys_get_ticks
-; %2: syscall number
-%macro syscall_wrapper 2
-extern %1
-%endmacro
 
 [SECTION .text]
+
+__handler_syscall:
+__handler_%[INT_VECTOR_SYSCALL]:
+%assign __handler_%[INT_VECTOR_SYSCALL]_defined 1
+; External variables
+extern syscall_table
+; ExternalFunctions
+extern save_ret
+
+    regsave
+    sti
+
+    call [syscall_table + 4 * eax]
+    call save_ret
+
+    cli
+    restart_entry
 
 ; ==== IRQ Handlers ====
 irq_wrapper irqclock,0
@@ -104,6 +121,5 @@ handlers:
   %endif
   %assign i_idt i_idt+1
 %endrep  
-%defstr PATH i_idt
 %undef i_idt
   
