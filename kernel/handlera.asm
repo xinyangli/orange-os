@@ -35,13 +35,6 @@ extern restart_reenter
     %%.reenter:
 %endmacro
 
-%macro restart_entry 0
-    dec dword [k_reenter]
-    cmp dword [k_reenter], -1
-    jne restart_reenter
-    jmp restart
-%endmacro
-
 ; arguments:
 ; %1: handler function name, e.g irqclock
 ; %2: IRQ number
@@ -82,7 +75,7 @@ global __handler_%[i_idt]
     out PIC1_DATA, al 
 %endif
     
-    restart_entry
+    jmp restart_entry
 %endmacro
 
 
@@ -103,11 +96,17 @@ extern save_ret
     call save_ret
 
     cli
-    restart_entry
+    jmp restart_entry
 
 ; ==== IRQ Handlers ====
 irq_wrapper irqclock,0
 irq_wrapper irqreport
+
+restart_entry:
+    dec dword [k_reenter]
+    cmp dword [k_reenter], -1
+    jne restart_reenter
+    jmp restart
 
 [SECTION .data]
 global handlers

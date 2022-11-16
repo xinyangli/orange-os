@@ -1,3 +1,4 @@
+#include "asm.h"
 #include "global.h"
 #include "handler.h"
 #include "syscall.h"

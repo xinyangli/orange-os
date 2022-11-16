@@ -7,12 +7,12 @@
 
 // Default irq handler
 void irqreport(void) {
-    ;
 }
 
 // clock handler
 void irqclock(void) {
-    ticks++;
+    ++ticks;
+    --p_proc_ready->time;
     if (k_reenter == 0) {
         // re-entered interrupt
         dist_colstr("DING", 0x02);

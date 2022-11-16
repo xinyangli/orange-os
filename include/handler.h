@@ -37,11 +37,7 @@
 #define PIC2_DATA (PIC2 + 1)
 #define PIC_EOI 0x20
 
-typedef void (__handler_pic0)(void);
-typedef void (__handler_pic1)(void);
 // type: pic0, pic1, syscall
-#define __glue2(x,y) x##y
-#define __glue(x,y) __glue2(x,y)
 
 extern void *handlers[IDT_SIZE];
 void init_idt();
