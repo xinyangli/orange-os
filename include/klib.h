@@ -5,8 +5,8 @@
 #include "global.h"
 #include "types.h"
 
-void dist_str(char *s);
-void dist_colstr(char *s, u8 col);
+void disp_str(char *s);
+void disp_colstr(char *s, u8 col);
 int set_Ptdisp(int pos);
 int disp_clear();
 void gain_gdt();

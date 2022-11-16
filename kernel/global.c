@@ -24,7 +24,8 @@ char task_stack[STACK_SIZE_TOTAL];
 TASK init_task[NR_TASKS] = {
     {(u32)TestA, STACK_SIZE_TESTA},
     {(u32)TestB, STACK_SIZE_TESTB},
-    {(u32)TestC, STACK_SIZE_TESTC}
+    {(u32)TestC, STACK_SIZE_TESTC},
+    {(u32)check_testA, STACK_SIZE_TESTD}
 };
 
 void *syscall_table[] = {

@@ -15,7 +15,7 @@ void irqclock(void) {
     --p_proc_ready->time;
     if (k_reenter == 0) {
         // re-entered interrupt
-        dist_colstr("DING", 0x02);
+        disp_colstr("DING", 0x02);
         schedule();
     }
 }

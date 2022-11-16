@@ -107,8 +107,8 @@ void kernel_start() {
     // 清屏
     disp_clear();
     // 显示超级马里奥
-    dist_str(SUPER_MARIO);
-    dist_str("\n");
+    disp_str(SUPER_MARIO);
+    disp_str("\n");
     // 设置 gdt
     relocate_gdt();
     add_ldt_desc();
