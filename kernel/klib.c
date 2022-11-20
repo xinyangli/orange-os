@@ -124,7 +124,7 @@ int parse_fmt(const char *fmt, fmt_block_t *fb) {
 }
 
 int apply_fmt(char *dst, void *arg, fmt_block_t *fb) {
-    char tmp[1 << 8], *pt = tmp;
+    char tmp[BUF_SIZE], *pt = tmp;
     // char
     if(fb->val_type == FMT_CHAR) {
         char ch = *(char *)arg;
@@ -207,7 +207,7 @@ int vsprintf(char *buf, const char *fmt, void *args) {
 }
 
 int printf(const char *fmt, ...) {
-    char buf[1 << 10];
+    char buf[BUF_SIZE];
     int c;
     void *args = (void *)&fmt + 4;
     c = vsprintf(buf, fmt, args);

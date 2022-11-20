@@ -13,6 +13,8 @@
 #define EXT_BLANK 0
 #define EXT_ZERO 1
 
+#define BUF_SIZE 4096
+
 typedef struct fmt_block {
     int val_type;
     int ext_num;
