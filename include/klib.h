@@ -5,6 +5,22 @@
 #include "global.h"
 #include "types.h"
 
+#define FMT_STR 0
+#define FMT_INT32 1 
+#define FMT_HEX32 2
+#define FMT_CHAR 3
+
+#define EXT_BLANK 0
+#define EXT_ZERO 1
+
+typedef struct fmt_block {
+    int val_type;
+    int ext_num;
+    int ext_type;
+} fmt_block_t;
+
+int printf(const char *fmt, ...);
+
 void disp_str(char *s);
 void disp_colstr(char *s, u8 col);
 int set_Ptdisp(int pos);
