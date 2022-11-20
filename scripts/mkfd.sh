@@ -16,15 +16,7 @@ sudo cp $BINLOADER .mnt/LOADER.BIN
 sudo umount .mnt
 
 rm -f $DISK_IMG
-if command -v bximage
-then
-bximage -func=create -hd=10M -imgmode=flat -sectsize=512 -q $DISK_IMG
-elif test qemu-img
-then
-qemu-img create -f raw $DISK_IMG 10M
-else
-dd if=/dev/zero of=/$DISK_IMG bs=1048576 count=10
-fi
+dd if=/dev/zero of=./$DISK_IMG bs=1M count=10
 sudo mkfs.fat -F32 $DISK_IMG
 sudo mount -o loop $DISK_IMG .mnt
 sudo cp okernel .mnt/OKERNEL
