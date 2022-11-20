@@ -5,8 +5,8 @@
 #include "global.h"
 #include "types.h"
 
-void dist_str(char *s);
-void dist_colstr(char *s, u8 col);
+void disp_str(char *s);
+void disp_colstr(char *s, u8 col);
 int set_Ptdisp(int pos);
 int disp_clear();
 void gain_gdt();
@@ -31,7 +31,7 @@ static void memcpy(void *dst, const void *src, size_t siz) {
 static void memset(void *dst, u8 c, size_t siz) {
     // TODO: Optimize performance
     u8 *p_dst = dst;
-    for (int i = 0; i < siz; i++, dst++) {
+    for (int i = 0; i < siz; i++, p_dst++) {
         *p_dst = c;
     }
 }

@@ -1,106 +1,24 @@
-[SECTION .text]
 
-extern PtDisp
-extern	p_proc_ready
-extern	tss
-extern	k_reenter
-extern StackTop
-extern old_esp
-extern check_testA
+%assign PIC1 0x20
+%assign PIC2 0xA0 ; IO base address for slave PIC
+%assign PIC1_COMMAND PIC1
+%assign PIC1_DATA (PIC1 + 1)
+%assign PIC2_COMMAND PIC2
+%assign PIC2_DATA (PIC2 + 1)
+%assign PIC_EOI 0x20
 
-; TODO: 干掉这两个变量
-P_STACKTOP equ 72
-TSS3_S_SP0	equ	4
+%assign INT_VECTOR_SYSCALL 0x90
 
-%if 0
-save:
-        ; We point esp0 to top of STACK_FRAME in last clock_handler
-        ; So, stack is switched to the top of STACK_FRAME when interrupt happens
-        pushad
-        push ds
-        push es
-        push fs
-        push gs
-        mov dx, ss
-        mov ds, dx
-        mov es, dx
+IDT_SIZE equ 256
 
-        ; move esp0 to esi
-        mov esi, esp
+; External Variables
+extern k_reenter
+extern StackTop        ; Kernel Stack
+; External Functions
+extern restart
+extern restart_reenter
 
-        inc dword [k_reenter]
-        cmp dword [k_reenter], 0
-        jne .1
-
-        mov esp, StackTop
-        push restart
-
-        ; 既然这里要保存retaddr才能跳转回去
-        ; 那为什么不直接inline?
-.1:
-        push restart_reenter
-
-restart:
-	mov	esp, [p_proc_ready]	
-	lldt	[esp + P_LDT_SEL]
-	lea	eax, [esp + P_STACKTOP]
-	mov	dword [tss + TSS3_S_SP0], eax
-restart_reenter:
-	dec	dword [k_reenter]
-	pop	gs
-	pop	fs
-	pop	es
-	pop	ds
-	popad
-	add	esp, 4
-	iretd
-
-; Wrapper function for hardware interrupt
-%macro    hwint_master 1
-    call save
-
-    ; Mask current interrupt
-    in al, INT_M_CTLMASK
-    or al, (1 << %1)
-    out INT_M_CTLMASK, al
-
-    ; Acknoledge interrupt
-    mov al, EOI
-    out INT_M_CTL, al
-
-    sti
-    push %1
-
-    call [irq_table + 4 * %1] ; Real interrupt handler
-
-    pop ecx
-    cli
-    ; Unmask current intterupt
-    in al, INT_M_CTLMASK
-    and al, ~(1 << %1)
-    out INT_M_CTLMASK, al
-    ret
-%endmacro
-%endif
-
-CharPos equ ((80 * 4 + 10) * 2)
-
-; ===============================================
-; 默认中断 在指定位置显示 `A`
-global empty_handler
-empty_handler:
-    push eax
-    mov ah, 0Ch
-    mov al, `A`
-    mov [gs:CharPos], ax
-    pop eax
-    iretd
-
-; ===============================================
-; 时钟中断 效果是显示一个变化的字符
-global clock_handler
-clock_handler:
-    sub esp, 4
+%macro regsave 0
     pushad
     push ds
     push es
@@ -110,101 +28,97 @@ clock_handler:
     mov ds, dx
     mov es, dx
 
-    mov al, 20h
-    out 20h, al
-
     inc dword [k_reenter]
     cmp dword [k_reenter], 0
-    jne .reenter
-
-    mov [old_esp], esp
+    jne %%.reenter
     mov esp, StackTop
+    %%.reenter:
+%endmacro
 
+; arguments:
+; %1: handler function name, e.g irqclock
+; %2: IRQ number
+%macro irq_wrapper 1-2 128
+
+extern %1
+%assign i_idt 0x20+%2
+global __handler_pic0_%1
+global __handler_%[i_idt]
+%assign __handler_%[i_idt]_defined 1
+  __handler_pic0_%1:
+  __handler_%[i_idt]:
+%undef i_idt
+    regsave
+%if %0==2
+    ; Mask current IRQ type
+    in al, PIC1_DATA
+    or al, (1 << %2)
+    out PIC1_DATA, al
+%endif
+    ; Acknoledge current IRQ
+    mov al, PIC_EOI
+%if %0==2
+    out PIC1_COMMAND, al
+%else 
+    out PIC2_COMMAND, al
+%endif
+    ; Accept other IRQ
     sti
 
-    mov byte [gs:CharPos + 1], 0Ch
-    cmp byte [gs:CharPos], `Z`
-    je .2
-    inc byte [gs:CharPos]
-    jmp .exit
-.2:
-    mov byte [gs:CharPos], `A`
-
-.exit:
-    ; 检查 testA 的代码完整性
-    call check_testA
+    call %1
 
     cli
-    mov esp, [old_esp] 
-
-    lea eax, [esp + P_STACKTOP] 
-    mov dword [tss + TSS3_S_SP0], eax
-
-.reenter:
-    dec dword [k_reenter]    
+    ; Unmask current IRQ type
+%if %0==2
+    in al, PIC1_DATA
+    and al, ~(1 << %2)
+    out PIC1_DATA, al 
+%endif
     
-    pop gs
-    pop fs
-    pop es
-    pop ds
-    popad
-    add esp, 4
-     
-    iretd
+    jmp restart_entry
+%endmacro
 
-; ===============================================
-; 键盘中断 效果是显示扫描码
-global KeyBoardHandler
-KeyBoardHandler:
-    push eax
-    in al, 60h
-    call DispAL
-.exit:
-    mov al, 20h
-    out 20h, al    
-    pop eax
-    iretd
 
-; ===============================================
-; 私有函数 用于显示
-DispAL:
-    push edi
-    push eax
-    push edx
-    push ecx ; 还是需要 ecx，比较自然
+[SECTION .text]
 
-    mov edi, [PtDisp]
-    mov ecx, 2
-    mov ah, 0Fh
-    mov dl, al ; 保存下来 
-    shr al, 4
-.chk:
-    and al, 0Fh
-    cmp al, 9
-    ja .1
-    add al, `0`
-    jmp .2
-.1:
-    sub al, 0Ah
-    add al, `A`
-.2:
-    mov [gs:edi], ax
-    add edi, 2
-    mov al, dl
-    loop .chk
+__handler_syscall:
+__handler_%[INT_VECTOR_SYSCALL]:
+%assign __handler_%[INT_VECTOR_SYSCALL]_defined 1
+; External variables
+extern syscall_table
+; ExternalFunctions
+extern save_ret
 
-    mov al, `h`
-    mov [gs:edi], ax
-    add edi, 2
-    
-    mov al, 32
-    mov [gs:edi], ax
-    add edi, 2
+    regsave
+    sti
 
-.exit:
-    mov [PtDisp], edi
-    pop ecx
-    pop edx
-    pop eax
-    pop edi
-    ret
+    call [syscall_table + 4 * eax]
+    call save_ret
+
+    cli
+    jmp restart_entry
+
+; ==== IRQ Handlers ====
+irq_wrapper irqclock,0
+irq_wrapper irqreport
+
+restart_entry:
+    dec dword [k_reenter]
+    cmp dword [k_reenter], -1
+    jne restart_reenter
+    jmp restart
+
+[SECTION .data]
+global handlers
+handlers:
+%assign i_idt 0
+%rep IDT_SIZE
+  %ifdef __handler_%[i_idt]_defined
+    dd __handler_%[i_idt]
+  %else
+    dd __handler_pic0_irqreport
+  %endif
+  %assign i_idt i_idt+1
+%endrep  
+%undef i_idt
+  

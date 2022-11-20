@@ -2,8 +2,8 @@
 #define ORANGE_OS_GLOBAL_H
 
 #include "types.h"
-#include "proc.h"
 #include "x86def.h"
+#include "proc.h"
 
 #define GDT_SIZE 128
 #define IDT_SIZE 256
@@ -34,6 +34,8 @@ extern PROCESS *p_proc_ready;
 extern PROCESS proc_table[];
 extern char task_stack[];
 extern TASK init_task[];
+
+extern void *syscall_table[];
 
 extern u32 old_esp;
 
