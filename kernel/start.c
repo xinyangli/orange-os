@@ -5,6 +5,8 @@
 #include "x86def.h"
 #include "handler.h"
 #include "asm.h"
+#include "tty.h"
+#include "console.h"
 
 void relocate_gdt() {
     gain_gdt();
@@ -118,6 +120,9 @@ void kernel_start() {
     init_idt();
     // show graphic for some time
     delay(3);
+    tty_init(ttys);
+    for (int i = 0; i < NR_CONSOLES; i++)
+        console_init(&ttys[i].console, i);
     // 进程
     init_proc();
     return;

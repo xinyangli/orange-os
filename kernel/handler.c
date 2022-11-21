@@ -4,6 +4,8 @@
 #include "klib.h"
 #include "asm.h"
 #include "proc.h"
+#include "kqueue.h"
+#include "keyboard.h"
 
 // Default irq handler
 void irqreport(void) {
@@ -13,11 +15,22 @@ void irqreport(void) {
 void irqclock(void) {
     ++ticks;
     --p_proc_ready->time;
-    if (k_reenter == 0) {
+    if (k_reenter != 0) {
         // re-entered interrupt
-        disp_colstr("DING", 0x02);
-        schedule();
+        return;
     }
+    schedule();
+}
+
+
+// Keyboard handler
+void irqkeyboard(void) {
+    // TODO: typing fast cause lost keyboard interrupt,
+    // some key is not fetched.
+    u8 scan_code = inb(0x60);
+
+    // TODO: Check if queue if full
+    kqueue_push(p_kb_queue, &scan_code, sizeof(u8));
 }
 
 void init_idt() {
@@ -36,7 +49,7 @@ void init_idt() {
     // 设置 8259a
     set_8259a();
     // 设置 IMREG 开启键盘和定时器中断
-    outb(0x21, 0xFE); // 主 <= OCW1
+    outb(0x21, 0xFC); // 主 <= OCW1
     outb(0xA1, 0xFF); // 从 <= OCW1
     lidt(idt_ptr);
 }

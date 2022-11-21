@@ -92,6 +92,8 @@ extern save_ret
     regsave
     sti
 
+    ; 整个过程中 p_proc_ready 不能被改变
+    ; 否则返回值会被放入其他进程的rax寄存器中
     call [syscall_table + 4 * eax]
     call save_ret
 
@@ -100,6 +102,7 @@ extern save_ret
 
 ; ==== IRQ Handlers ====
 irq_wrapper irqclock,0
+irq_wrapper irqkeyboard, 1
 irq_wrapper irqreport
 
 restart_entry:

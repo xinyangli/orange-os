@@ -48,7 +48,7 @@ typedef struct {
 } TASK;
 
 /* Number of tasks */
-#define NR_TASKS 4
+#define NR_TASKS 1
 
 /* stacks of tasks */
 #define STACK_SIZE_TESTA 0x8000
@@ -66,6 +66,7 @@ void TestB();
 void TestC();
 int init_proc();
 int check_testA();
+void task_tty();
 
 static void inline load_proc_state(STACK_FRAME *p_frame) {
     __asm__ __volatile__("mov %0, %%esp\n"
