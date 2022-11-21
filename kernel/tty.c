@@ -14,9 +14,23 @@ void tty_init(tty_t *ttys) {
     }
 }
 
+void test_printf(console_t *p_console) {
+    char str[] = "Testing printf()! =====================";
+    int x = 0x1234;
+    console_printf(p_console,"Test %%s: %s\n", str);
+    console_printf(p_console,"Test for %%17s: %17s\n", str);
+    console_printf(p_console,"Test for %%c: %c\n", str[0]);
+    console_printf(p_console,"Test for %%d: %d\n", x);
+    console_printf(p_console,"Test for %%8d %%.8d: %8d %.8d\n", x, x);
+    console_printf(p_console,"Test for %%x: %x\n", x);
+    console_printf(p_console,"Test for %%8x %%.8x: %8x %.8x\n", x, x);
+    return;
+}
+
 void task_tty() {
     tty_t *p_fgtty = ttys; /* tty in the foreground */
     char input[2];
+    test_printf(&p_fgtty->console);
     while (1) {
         if (keyboard_read(&p_fgtty->buf)) {
             u16 keystroke = *(u16 *)kqueue_front(&p_fgtty->buf, sizeof(u16));

@@ -41,6 +41,7 @@ void flush(console_t *);
 
 void console_dispch(console_t *p_console, char ch);
 void console_dispstr(console_t *p_console, const char *s);
+int console_printf(console_t *p_console, const char *fmt, ...);
 void console_switch(console_t *p_console);
 
 #endif // ORANGE_OS_CONSOLE_H

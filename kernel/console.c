@@ -1,6 +1,7 @@
 #include "klib.h"
 #include "tty.h"
 #include "console.h"
+#include "klib.h"
 
 void console_init(console_t *p_console, u8 nr) {
     /* vb = Video Buffer */
@@ -54,6 +55,15 @@ void console_dispstr(console_t *p_console, const char *s) {
     if (CONSOLE_AT_BOTTOMLINE(p_console))
         scroll_screen(p_console, SCROLL_DOWN);
     p_console->cursor = p_console->p_current - p_console->p_base - p_console->screen_offset; 
+}
+
+int console_printf(console_t *p_console, const char *fmt, ...) {
+    char buf[BUF_SIZE];
+    int c;
+    void *args = (void *)&fmt + 4;
+    c = vsprintf(buf, fmt, args);
+    console_dispstr(p_console, buf);
+    return c;
 }
 
 void console_switch(console_t *p_console) {
