@@ -15,6 +15,6 @@ extern u8 buf[64];
 extern kqueue kb_queue;
 extern kqueue *p_kb_queue;
 
-void keyboard_read();
+int keyboard_read();
 
 #endif /* _ORANGES_KEYBOARD_H_ */

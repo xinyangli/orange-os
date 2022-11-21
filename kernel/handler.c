@@ -25,12 +25,12 @@ void irqclock(void) {
 
 // Keyboard handler
 void irqkeyboard(void) {
+    // TODO: typing fast cause lost keyboard interrupt,
+    // some key is not fetched.
     u8 scan_code = inb(0x60);
 
-    /* Discard scan_code if buffer is full */
-    if(!kqueue_full(p_kb_queue)) {
-        kqueue_push(p_kb_queue, &scan_code, sizeof(u8));
-    }
+    // TODO: Check if queue if full
+    kqueue_push(p_kb_queue, &scan_code, sizeof(u8));
 }
 
 void init_idt() {

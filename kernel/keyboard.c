@@ -42,37 +42,40 @@ static inline int update_state(u16 keystroke, u8 scan_code) {
             kb_state.caps ^= !IS_RELEASE(scan_code);
             break;
         default:
-            return -1;
+            return 0;
     }
-    return 0;
+    return 1;
 }
 
-void keyboard_read() {
+int keyboard_read(kqueue *kq_buf) {
     u8 scan_code;
     u16 keystroke = 0;   /* Parsed key code, ascii number or defined in keyboard.h */
     u8 col_modifier = 0;
     char input[2];
 
     u8 flags = 0;
+    u8 buf_appended = 0; /* Whether tty buffer is appended with character*/
     while(!kqueue_empty(p_kb_queue)) {
         scan_code = *(u8 *)kqueue_front(p_kb_queue, sizeof(u8));
-        cli();
         // TODO: Maybe use lock to control?
         kqueue_pop(p_kb_queue);
-        sti();
 
         if (kb_state.shift_l || kb_state.shift_r)
             keystroke = keymap[scan_code & 0x7F][1];
         else
             keystroke = keymap[scan_code & 0x7F][0];
 
-        update_state(keystroke, scan_code);
+        if (update_state(keystroke, scan_code)) {
+            continue;
+        }
 
         if (IS_RELEASE(scan_code)) {
             continue;
         }
 
-        // shift and e0 xx
+        buf_appended = 1;
+
+        // 0xE0 xx
 
         if (kb_state.caps) {
             if (IS_LOWERCASE(keystroke & 0x7F))
@@ -81,14 +84,10 @@ void keyboard_read() {
                      (kb_state.shift_l || kb_state.shift_r))
                 keystroke = keystroke - 'A' + 'a';
         }
-        if (IS_VISIBLE(keystroke)) {
-            input[0] = keystroke;
-        } else {
-            input[0] = ' ';
-        }
-        input[1] = '\0';
-        disp_str(input);
+        // TODO: Is buffer full?
+        kqueue_push(kq_buf, &keystroke, sizeof(u16));
         // disp_int(scan_code);
         // disp_str(" ");
     }
+    return buf_appended;
 }
