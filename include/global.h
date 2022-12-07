@@ -29,9 +29,9 @@ extern GATE idt[IDT_SIZE];
 extern u32 k_reenter;
 
 extern TSS tss;
-extern PROCESS *p_proc_ready;
+extern proc_t *p_proc_ready;
 
-extern PROCESS proc_table[];
+extern proc_t proc_table[];
 extern char task_stack[];
 extern TASK init_task[];
 

@@ -26,10 +26,10 @@ typedef struct {
     u32 eflags;
     u32 esp;
     u32 ss;
-} STACK_FRAME;
+} stackframe;
 
 typedef struct {
-    STACK_FRAME regs;          /* process' registers saved in stack frame */
+    stackframe regs;          /* process' registers saved in stack frame */
     u16 ldt_sel;               /* selector in gdt giving ldt base and limit*/
     DESCRIPTOR ldts[LDT_SIZE]; /* local descriptors for code and data */
                                /* 2 is LDT_SIZE - avoid include x86def.h */
@@ -40,7 +40,7 @@ typedef struct {
     
     u32 pid;                   /* process id passed in from MM */
     char p_name[16];           /* name of the process */
-} PROCESS;
+} proc_t;
 
 typedef struct {
     u32 init_eip;
@@ -68,7 +68,7 @@ int init_proc();
 int check_testA();
 void task_tty();
 
-static void inline load_proc_state(STACK_FRAME *p_frame) {
+static void inline load_proc_state(stackframe *p_frame) {
     __asm__ __volatile__("mov %0, %%esp\n"
                        "pop %%gs\n"
                        "pop %%fs\n"

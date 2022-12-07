@@ -2,7 +2,6 @@
 #include "global.h"
 #include "handler.h"
 #include "syscall.h"
-#define SYSCALL_GET_TICKS 0
 
 // TODO: save_ret is used in assembly. Maybe we can make it inline?
 void save_ret() {

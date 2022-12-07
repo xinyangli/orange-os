@@ -49,7 +49,7 @@ __attribute__((noreturn)) int init_proc() {
     disp_clear();
     disp_str("-----\"kernel_main\" begins-----\n");
 
-    PROCESS *p_proc = proc_table;
+    proc_t *p_proc = proc_table;
     TASK *p_task = init_task;
     u16 selector_ldt = SELECTOR_LDT_FIRST;
     u32 stack_top = (u32)task_stack + STACK_SIZE_TOTAL;
@@ -115,7 +115,7 @@ int check_testA() {
 }
 
 void schedule() {
-    PROCESS *cur = p_proc_ready;
+    proc_t *cur = p_proc_ready;
     int i = 0;
     int j = 0;
     if (cur->time <= 0) {
@@ -154,7 +154,7 @@ void schedule() {
 }
 
 void restart(void) {
-    tss.esp0 = (u32)p_proc_ready + sizeof(STACK_FRAME);
+    tss.esp0 = (u32)p_proc_ready + sizeof(stackframe);
     lldt(p_proc_ready->ldt_sel);
     __asm__ __volatile__("mov %0, %%esp\n"
                          "pop %%gs\n"

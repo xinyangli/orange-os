@@ -16,9 +16,9 @@ u32 old_esp;
 u32 ticks;
 
 TSS tss;
-PROCESS *p_proc_ready;
+proc_t *p_proc_ready;
 
-PROCESS proc_table[NR_TASKS];
+proc_t proc_table[NR_TASKS];
 char task_stack[STACK_SIZE_TOTAL];
 
 TASK init_task[NR_TASKS] = {
