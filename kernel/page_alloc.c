@@ -1,5 +1,6 @@
 #include "types.h"
 #include "mm.h"
+#include "asm.h"
 
 free_area_t free_area[MAX_ORDER]; /* array of free space bitmap */
 

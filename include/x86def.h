@@ -1,5 +1,5 @@
-#ifndef _ORANGES_PROTECT_H_
-#define _ORANGES_PROTECT_H_
+#ifndef _ORANGES_X86DEF_H_
+#define _ORANGES_X86DEF_H_
 
 #include "types.h"
 
@@ -134,8 +134,31 @@ typedef struct {
 #define INT_VECTOR_IRQ0 0x20
 #define INT_VECTOR_IRQ8 0x28
 
+#define GDT_SIZE 128
+#define IDT_SIZE 256
+
+/* 权限 */
+#define PRIVILEGE_KRNL 0
+#define PRIVILEGE_TASK 1
+#define PRIVILEGE_USER 3
+
+/* RPL */
+#define RPL_KRNL 0
+#define RPL_TASK 1
+#define RPL_USER 3
+
 /* 宏 */
 /* 线性地址 → 物理地址 */
 #define vir2phys(seg_base, vir) (u32)(((u32)seg_base) + (u32)(vir))
 
-#endif // _ORANGES_PROTECT_H_
+/* Global variables */
+extern u8 gdt_ptr[6];
+extern DESCRIPTOR gdt[GDT_SIZE];
+extern u8 idt_ptr[6];
+extern GATE idt[IDT_SIZE];
+extern TSS tss;
+
+void set_gate(GATE *p_gate, u8 type, void *handler, u8 privilege);
+void set_descriptor(DESCRIPTOR *p_desc, u32 base, u32 limit, u16 attribute);
+
+#endif // _ORANGES_X86DEF_H_

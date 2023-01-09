@@ -75,7 +75,7 @@ int keyboard_read(kqueue *kq_buf) {
 
         buf_appended = 1;
 
-        // 0xE0 xx
+        // TODO: 0xE0 xx
 
         if (kb_state.caps) {
             if (IS_LOWERCASE(keystroke & 0x7F))

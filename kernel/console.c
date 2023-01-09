@@ -3,6 +3,8 @@
 #include "console.h"
 #include "klib.h"
 
+int PtDisp;
+
 void console_init(console_t *p_console, u8 nr) {
     /* vb = Video Buffer */
     const u32 vb_size = V_BUF_SIZE >> 1;
@@ -24,6 +26,7 @@ void console_dispch(console_t *p_console, char ch) {
             }
             p_console->p_current->ch = ' ';
             p_console->p_current->attr = 0;
+            break;
         case '\n':
             p_console->p_current += CONSOLE_SCREEN_WIDTH - (p_console->p_current - p_console->p_base) % CONSOLE_SCREEN_WIDTH;
             break;
@@ -36,6 +39,7 @@ void console_dispch(console_t *p_console, char ch) {
     if (CONSOLE_AT_BOTTOMLINE(p_console))
         scroll_screen(p_console, SCROLL_DOWN);
     p_console->cursor = p_console->p_current - p_console->p_base - p_console->screen_offset; 
+    flush(p_console);
 }
 
 void console_dispstr(console_t *p_console, const char *s) {

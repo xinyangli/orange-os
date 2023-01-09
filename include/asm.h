@@ -43,4 +43,9 @@ static inline void iret() {
 static inline void BOCHS_BREAK() {
     __asm__ __volatile__("xchgw %bx, %bx");
 }
+
+static inline int clz(unsigned int x) {
+  return __builtin_clz(x);
+}
+
 #endif // ORANGE_OS_ASM_H

@@ -3,6 +3,10 @@
 #include "handler.h"
 #include "syscall.h"
 
+void *syscall_table[] = {
+    sys_get_ticks,
+};
+
 // TODO: save_ret is used in assembly. Maybe we can make it inline?
 void save_ret() {
     __asm__ (

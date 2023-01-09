@@ -21,6 +21,8 @@ typedef struct fmt_block {
     int ext_type;
 } fmt_block_t;
 
+extern int PtDisp;
+
 int vsprintf(char *buf, const char *fmt, void *args);
 int printf(const char *fmt, ...);
 

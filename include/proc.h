@@ -58,7 +58,6 @@ typedef struct {
 
 #define STACK_SIZE_TOTAL 0xE000
 
-
 void to_kstack();
 
 void TestA();

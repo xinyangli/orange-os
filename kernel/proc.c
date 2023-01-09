@@ -9,6 +9,18 @@
 #define QUEUE_LEVEL 3
 int queue_slice[] = {10, 20, 30};
 int queue_len[] = {NR_TASKS, 0, 0};
+proc_t proc_table[NR_TASKS];
+char task_stack[STACK_SIZE_TOTAL];
+
+TASK init_task[NR_TASKS] = {
+    {(u32)task_tty, STACK_SIZE_TESTD}
+};
+
+proc_t *p_proc_ready;
+u32 ticks;
+
+int k_reenter = -1;
+
 
 void TestA() {
     while (1) {
